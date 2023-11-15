@@ -202,26 +202,49 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget2->setStyleSheet("background-color:rgb(100,100,100);");
     page2_widget3->setStyleSheet("background-color:rgb(100,100,100);");
     ///page2_widget1
-    QPushButton* button_AGC = new QPushButton("AGC");
+    QPushButton* button_AGC = new QPushButton("AGC_2D");
     button_AGC->setStyleSheet(style1.button_save_style1);
-    button_AGC->setMaximumSize(200, 50);
+    button_AGC->setMaximumSize(100, 50);
     page2_widget1_layout->addWidget(button_AGC);
 
+    QPushButton* AGC_single = new QPushButton("AGC_tracei");
+    AGC_single->setStyleSheet(style1.button_save_style1);
+    AGC_single->setMaximumSize(100, 50);
+    page2_widget1_layout->addWidget(AGC_single);
+
+    QLabel* windows_size = new QLabel("windows_size");
+    windows_size->setMaximumSize(100, 50);
+    windows_size->setStyleSheet("background-color:lightgreen");
+    page2_widget1_layout->addWidget(windows_size);
+
     windows_size_value = new QSpinBox();//调节windows_size数值
-    windows_size_value->setToolTip("<html><font size='5' color='lightgreen'>This is iterations</font></html>");
+    windows_size_value->setToolTip("<html><font size='5' color='lightgreen'>AGC windows size!</font></html>");
     /*windows_size_value->setMinimum(1);
     windows_size_value->setMaximum(dataArray.size());*/
-    windows_size_value->setMaximumWidth(200);
+    windows_size_value->setMaximumWidth(100);
     windows_size_value->setMaximumHeight(50);
-
     windows_size_value->setStyleSheet("background-color:rgb(180,180,180)");
     page2_widget1_layout->addWidget(windows_size_value);
+
+    QLabel* label_trace_i = new QLabel("trace i");///分割标签
+    label_trace_i->setMaximumSize(100, 50);
+    label_trace_i->setStyleSheet("background-color:lightgreen");
+    page2_widget1_layout->addWidget(label_trace_i);
+
+    agc_trace_i = new QSpinBox();//调节windows_size数值
+    agc_trace_i->setToolTip("<html><font size='5' color='lightgreen'>AGC trace i!</font></html>");
+    /*windows_size_value->setMinimum(1);
+    windows_size_value->setMaximum(dataArray.size());*/
+    agc_trace_i->setMaximumWidth(100);
+    agc_trace_i->setMaximumHeight(50);
+    agc_trace_i->setStyleSheet("background-color:rgb(180,180,180)");
+    page2_widget1_layout->addWidget(agc_trace_i);
+
 
     QPushButton* AGC_save = new QPushButton("AGC_save");
     AGC_save->setStyleSheet(style1.button_save_style1);
     AGC_save->setMaximumSize(200, 50);
     page2_widget1_layout->addWidget(AGC_save);
-
 
     ///page2_widget2
     QPushButton* button_filter = new QPushButton("filter");
@@ -230,25 +253,40 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     button_filter->setStyleSheet(style1.button_save_style1);
 
     ///page2_widget3
-    QPushButton* button_fft = new QPushButton("FFT");
+    QPushButton* button_fft = new QPushButton("FFT_1d");
     page2_widget3_layout->addWidget(button_fft);
     button_fft->setMaximumSize(200, 50);
     button_fft->setStyleSheet(style1.button_save_style1);
 
+    QPushButton* button_fft_2d = new QPushButton("FFT_2d");
+    page2_widget3_layout->addWidget(button_fft_2d);
+    button_fft_2d->setMaximumSize(200, 50);
+    button_fft_2d->setStyleSheet(style1.button_save_style1);
+
+    QLabel* label_sample_rate = new QLabel("sample_rate");///分割标签
+    label_sample_rate->setMaximumSize(100, 50);
+    label_sample_rate->setStyleSheet("background-color:lightgreen");
+    page2_widget3_layout->addWidget(label_sample_rate);
+
     fft_sample_rate = new QDoubleSpinBox();//调节fft_sample_rate数值
     fft_sample_rate->setToolTip("<html><font size='5' color='lightgreen'>set sample rate!</font></html>");
-    fft_sample_rate->setMinimum(1);
-    fft_sample_rate->setValue(500);
-    fft_sample_rate->setMaximum(1000);
+    //fft_sample_rate->setMinimum(1);
+    //fft_sample_rate->setValue(500);
+    /*fft_sample_rate->setMaximum(1000);*/
     fft_sample_rate->setMaximumWidth(200);
     fft_sample_rate->setMaximumHeight(50);
     fft_sample_rate->setStyleSheet("background-color:rgb(180,180,180)");
     page2_widget3_layout->addWidget(fft_sample_rate);
 
-    data_trace_i = new QSpinBox();//调节fft_sample_rate数值
+    QLabel* label_tracei2 = new QLabel("trace i");///分割标签
+    label_tracei2->setMaximumSize(100, 50);
+    label_tracei2->setStyleSheet("background-color:lightgreen");
+    page2_widget3_layout->addWidget(label_tracei2);
+
+    data_trace_i = new QSpinBox();//调节data_trace_i数值
     data_trace_i->setToolTip("<html><font size='5' color='lightgreen'>set data_trace_i !</font></html>");
-    data_trace_i->setMinimum(0);
-    data_trace_i->setValue(500);
+    /*data_trace_i->setMinimum(0);*/
+    /*data_trace_i->setValue(500);*/
     data_trace_i->setMaximumWidth(200);
     data_trace_i->setMaximumHeight(50);
     data_trace_i->setStyleSheet("background-color:rgb(200,200,200)");
@@ -263,9 +301,11 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ///function connect
     connect(button_AGC, SIGNAL(clicked()), this, SLOT(dataArrayAGC()));
     connect(AGC_save, SIGNAL(clicked()), this, SLOT(save_AGC_segy()));
-    ///fft1
-    connect(button_fft, SIGNAL(clicked()), this, SLOT(opencv_fft()));//一维傅里叶变换
+    connect(AGC_single, SIGNAL(clicked()), this, SLOT(trace_i_agc()));
 
+    ///fft1
+    connect(button_fft, SIGNAL(clicked()), this, SLOT(opencv_fft_1d()));//一维傅里叶变换
+    connect(button_fft_2d, SIGNAL(clicked()), this, SLOT(opencv_fft2d()));//一维傅里叶变换
 
     connect(button_fft_show, SIGNAL(clicked()), this, SLOT(chart_fftshow()));
 
@@ -366,20 +406,17 @@ void Qt_segy_process::show_segy() {
         COLORMAP_HOT：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度*/
         // 显示图像
     //imshow("colormap", colorMap);
-
-    cv::namedWindow("Original", cv::WINDOW_NORMAL);
-    cv::imshow("Original", image); // 显示原始图像
-
-    cv::namedWindow("colorMap", cv::WINDOW_NORMAL);
-    cv::imshow("colorMap", colorMap); // 显示colorMap
-
+    //cv::namedWindow("Original", cv::WINDOW_NORMAL);
+    //cv::imshow("Original", image); // 显示原始图像
+    //cv::namedWindow("colorMap", cv::WINDOW_NORMAL);
+    //cv::imshow("colorMap", colorMap); // 显示colorMap
     //cv::namedWindow("Resized", cv::WINDOW_NORMAL);
     //cv::imshow("Resized", resized); // 显示调整后的图像
 
     float minValue = findMinMaxValue(dataArray_real, 0); // 查找最小值
     float maxValue = findMinMaxValue(dataArray_real, 1); // 查找最大值
 
-    QString message = QString("Min Value: %1, Max Value: %2").arg(minValue).arg(maxValue);
+    QString message = QString("orignal data value in Min Value: %1,<-> Max Value: %2").arg(minValue).arg(maxValue);
     ui.statusBar->showMessage(message);
     //主页面显示数据
     src = image;
@@ -389,7 +426,11 @@ void Qt_segy_process::show_segy() {
     cv::destroyAllWindows(); // 关闭所有OpenCV窗口
     /*textEdit1->setText("dataArray_real");*/
     textEdit1->append(tr("dataArray_real:trace simple:%1 ;trace number %2").arg(dataArray.size()).arg(dataArray[0].size()));
+    textEdit1->append(tr("dataArray_real:minvalue:%1 ;maxvalue %2").arg(minValue).arg(maxValue));
 
+    stackedWidget1->setCurrentIndex(0);//显示图片呢，跳转到首页
+    
+    
 }
 //save
 void  Qt_segy_process::save_segy() {
@@ -594,20 +635,20 @@ int Qt_segy_process::swap4byte(int value)
     return svalue;
 }
 //数据归一化
-std::vector<std::vector<float>> Qt_segy_process::normalized(std::vector<std::vector<float>> dataArray) {
+std::vector<std::vector<float>> Qt_segy_process::normalized(std::vector<std::vector<float>> matrix) {
 
     // 步骤 1: 找到最小值和最大值
-    float minValue = dataArray[0][0];
-    float maxValue = dataArray[0][0];
+    float minValue = matrix[0][0];
+    float maxValue = matrix[0][0];
 
-    for (int i = 0; i < dataArray.size(); ++i)
+    for (int i = 0; i < matrix.size(); ++i)
     {
-        for (int j = 0; j < dataArray[i].size(); ++j)
+        for (int j = 0; j < matrix[i].size(); ++j)
         {
-            if (dataArray[i][j] < minValue)
-                minValue = dataArray[i][j];
-            if (dataArray[i][j] > maxValue)
-                maxValue = dataArray[i][j];
+            if (matrix[i][j] < minValue)
+                minValue = matrix[i][j];
+            if (matrix[i][j] > maxValue)
+                maxValue = matrix[i][j];
         }
     }
 
@@ -615,16 +656,53 @@ std::vector<std::vector<float>> Qt_segy_process::normalized(std::vector<std::vec
     float newMin = 0.0f;  // 新的最小值
     float newMax = 1.0f;  // 新的最大值
 
-    for (int i = 0; i < dataArray.size(); ++i)
+    // 先对数据进行标准化
+    //float meanValue = calculateMean(dataArray);
+    //float stdDev = calculateStdDev(dataArray);
+
+    //for (int i = 0; i < dataArray.size(); ++i) {
+    //    for (int j = 0; j < dataArray[i].size(); ++j) {
+    //        dataArray[i][j] = (dataArray[i][j] - meanValue) / stdDev;
+    //    }
+    //}
+    for (int i = 0; i < matrix.size(); ++i)
     {
-        for (int j = 0; j < dataArray[i].size(); ++j)
+        for (int j = 0; j < matrix[i].size(); ++j)
         {
-            float dataValue = dataArray[i][j];
+            float dataValue = matrix[i][j];
             float normalizedValue = (dataValue - minValue) / (maxValue - minValue) * (newMax - newMin) + newMin;
-            dataArray[i][j] = normalizedValue;
+            matrix[i][j] = normalizedValue;
         }
     }
-    return dataArray;
+    return  matrix;
+}
+//数据标准化
+std::vector<std::vector<float>> Qt_segy_process::normalizeColumns(std::vector<std::vector<float>> matrix) {
+
+    int rows = matrix.size();
+    int cols = matrix[0].size();
+
+    // 对每一列进行标准化
+    for (int j = 0; j < cols; ++j) {
+        // 计算列的平均值
+        float mean = std::accumulate(matrix.begin(), matrix.end(), 0.0, [j](float sum, const std::vector<float>& row) {
+            return sum + row[j];
+            }) / rows;
+
+        // 计算列的标准差
+        float sum_squared_diff = 0.0;
+        for (int i = 0; i < rows; ++i) {
+            sum_squared_diff += std::pow(matrix[i][j] - mean, 2);
+        }
+        float std_dev = std::sqrt(sum_squared_diff / rows);
+
+        // 对列进行标准化
+        for (int i = 0; i < rows; ++i) {
+            matrix[i][j] = (matrix[i][j] - mean) / std_dev;
+        }
+    }
+
+    return matrix; // 返回标准化后的矩阵
 }
 // 定义一个函数来进行矩阵转置
 std::vector<std::vector<float>> Qt_segy_process::transposeMatrix(std::vector<std::vector<float>> matrix) {
@@ -683,8 +761,7 @@ cv::Mat Qt_segy_process::dataArray2image(std::vector<std::vector<float>> dataArr
     return image_temp;
     ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
 }
-
-// Function to calculate the root mean square (RMS) of a vector
+// 滑动窗口Function to calculate the root mean square (RMS) of a vector
 float Qt_segy_process::calculateRMS(const std::vector<std::vector<float>>& data, int row, int col, int windowSize) {
     float sum = 0.0f;
     for (int i = std::max(0, row - windowSize / 2); i < std::min(static_cast<int>(data.size()), row + windowSize / 2 + 1); ++i) {
@@ -694,9 +771,9 @@ float Qt_segy_process::calculateRMS(const std::vector<std::vector<float>>& data,
     }
     return std::sqrt(sum / (windowSize * windowSize));
 }
-//AGC//agc没有做完，现在返回的是rms值
+//AGC//agc2d,滑动窗口计算能量
 void Qt_segy_process::dataArrayAGC() {//自适应增益控制
-    
+    ///判断 
     if (dataArray_real.empty()) {//先判断数据是否初始化
 
         ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
@@ -704,21 +781,18 @@ void Qt_segy_process::dataArrayAGC() {//自适应增益控制
         return;
     }
     //std::vector<std::vector<float>>& data, int windowSize, float k
-    float k = 2.0f;
     std::vector<std::vector<float>> dataarray_agc = transposeMatrix(dataArray_real);
-    std::vector<std::vector<float>> dataarray_agc_rms;
     ///调整数值
     if (dataarray_agc.empty()){
         return ;
     }
 
     windows_size_value->setMinimum(1);
+    //windows_size_value->setValue(dataarray_agc.size() / 2) ;
     windows_size_value->setMaximum(dataarray_agc.size());
-
-    //int windowSize = 3;
-    int windowSize = windows_size_value->value();
-    
-
+    //int windowSize = 3; 
+    int window_size = windows_size_value->value();//设定滑动窗口的大小
+    ///判断
     if (dataarray_agc.empty()) {
 
         QString message = QString("empty!");
@@ -726,39 +800,85 @@ void Qt_segy_process::dataArrayAGC() {//自适应增益控制
         ui.statusBar->setStyleSheet("color:red;font-size=20px;");
         return ;
     }
-    else {
-        QString message = QString("OK!");
-        ui.statusBar->showMessage(message);
+    
+    /////判断最大值最小值是否小于1
+    //float minValue = findMinMaxValue(dataarray_agc, 0);
+    //float maxValue = findMinMaxValue(dataarray_agc, 1);//获取
+
+    //if (minValue >-1 || maxValue <1)
+    //{
+    //    for (int i = 0; i < dataarray_agc.size(); ++i) {
+    //        for (int j = 0; j < dataarray_agc[i].size(); ++j) {
+    //            dataarray_agc[i][j] = dataarray_agc[i][j] / abs(minValue);
+    //        }
+    //    }
+    //}
+    //dataarray_agc = Exc_min(dataarray_agc);///切除极小值
+
+std::vector<std::vector<float>> agc_result;
+
+int num_traces = dataarray_agc[0].size();//获取道数 
+ ///start****************************************
+for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的计算规则计算二维数据
+    
+    vector<float> data;//存储单道数据空间
+    data.reserve(dataarray_agc.size());
+    for (int i = 0; i < dataarray_agc.size(); i++) {//获取指定i的单道数据
+
+        data.push_back(dataarray_agc[i][data_tracei]);//得到一维向量data
     }
+    // 计算数据的平方
+    std::vector<float> squared_data;
+    squared_data.reserve(data.size());
+    for (const auto& value : data) {
+        if (std::pow(value, 2)< 1e-30) {
 
-    int numRows = static_cast<int>(dataarray_agc.size());
-    int numCols = static_cast<int>(dataarray_agc[0].size());
-
-    // 计算每个时间窗口的均方根值并应用AGC
-    for (int i = 0; i < numRows; ++i) {
-        
-        vector<float> row;
-        for (int j = 0; j < numCols; ++j) {
-            float rms = calculateRMS(dataarray_agc, i, j, windowSize);
-            row.push_back(rms);
-            dataarray_agc[i][j] = rms;
-            dataarray_agc_rms.push_back(row);//vector需要push_back
+            squared_data.push_back(std::pow(value, 2) + 1e-30);
         }
-    }
-    if (windowSize > dataarray_agc.size()) {
+        else {
+            squared_data.push_back(std::pow(value, 2) );
+        }
 
-        QString message = QString("too much!");
-        ui.statusBar->showMessage(message);
-        ui.statusBar->setStyleSheet("color:red;font-size=20px;");
-        return ;
+        //单点值的平方。小数变小；
+    }
+    // 使用滑动窗口计算每个窗口内的平均能量
+    std::vector<float> sliding_mean(data.size(), 0.0);
+    for (int i = 0; i < data.size(); ++i) {
+        for (int j = std::max(0, i - window_size / 2); j <= std::min(static_cast<int>(data.size()) - 1, i + window_size / 2); ++j) {
+            sliding_mean[i] += squared_data[j];
+        }
+        sliding_mean[i] /= window_size;
     }
 
+    std::vector<float> agc_data(data.size(), 0.0);
+    
+    for (int i = 0; i < data.size(); ++i) {
+        agc_data[i] = data[i] / std::sqrt(sliding_mean[i]);
+    }
+    //const float threshold = 1e-6; /// 设置一个阈值，根据实际情况调整
+    //// agc缩放，根据，当前窗口能量大小进行
+    //for (int i = 0; i < data.size(); ++i) {
+    //    // 检查计算结果是否小于阈值
+    //    if (std::abs(data[i] / std::sqrt(sliding_mean[i])) < threshold) {
+    //        agc_data[i] = 0.0; // 替换为零
+    //    }
+    //    else {
+    //        agc_data[i] = data[i] / std::sqrt(sliding_mean[i]);
+    //    }
+    //}
+    // Store the result for this trace
+    agc_result.push_back(agc_data);//这里矩阵的方向变了，需要变回去
+}
+///end****************************************
     std::vector<std::vector<float>> temp;
-    temp = dataarray_agc;//增益过后的数据,数据存储用
+    agc_result = transposeMatrix(agc_result);//转置
 
-    agc_save_data = temp;
+    temp = agc_result;//增益过后的数据,数据存储用
+    agc_save_data = agc_result;
+    //agc_save_data = temp;
 
-    temp = normalized(temp);
+    //temp = normalizeColumns(temp);
+    temp = normalized(temp);//这里归一化后，模拟数据出现问题，需要改进。
     src= dataArray2image(temp);
 
     QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);
@@ -766,14 +886,166 @@ void Qt_segy_process::dataArrayAGC() {//自适应增益控制
 
     cv::namedWindow("AGC", cv::WINDOW_NORMAL);
     cv::imshow("AGC", src); // 显示colorMap
+    QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
+    ui.statusBar->showMessage(message, 10000);//显示10秒
+
     waitKey(0);
     cv::destroyAllWindows(); // 关闭所有OpenCV窗口
 
-    QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
-    ui.statusBar->showMessage(message);
+}
+///单道数据agc
+void Qt_segy_process::trace_i_agc() {
+
+    if (dataArray_real.empty()) {//先判断数据是否初始化
+
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    std::vector<std::vector<float>> dataarray_agc = transposeMatrix(dataArray_real);//函数内部
+
+    if (dataarray_agc.empty()) {
+        return;
+    }
+    vector<float> data;//存储单道数据空间
+
+    agc_trace_i->setMaximum(dataarray_agc[0].size());//设置最大道数
+
+    windows_size_value->setMinimum(1);//设置窗口最小值
+    //windows_size_value->setValue(dataarray_agc.size() / 2);
+    windows_size_value->setMaximum(dataarray_agc.size());//设置最大窗口长度
+
+    int data_tracei = agc_trace_i->value();
+
+    int window_size = windows_size_value->value();//设定滑动窗口的大小
+    //int data_tracei = data_trace_i->value();
+    ///开始
+    //const float threshold = 1e-6; /// 设置一个阈值，防止数据过小
+    //// agc缩放，根据，当前窗口能量大小进行
+    //for (int i = 0; i < dataarray_agc.size(); ++i) {
+    //    for(int j = 0; j < dataarray_agc.size(); ++j){
+    //            if (dataarray_agc[i][j] < threshold) {
+    //                dataarray_agc[i][j] = 0.0; // 替换为零
+    //            }
+    //    }
+
+    //}
+    for (int i = 0; i < dataarray_agc.size(); i++) {//获取指定i的单道数据
+
+        data.push_back(dataarray_agc[i][data_tracei]);//得到一维向量data
+    }
+    // 计算数据的平方
+    std::vector<float> squared_data;
+    squared_data.reserve(data.size());
+    for (const auto& value : data) {
+        if (std::pow(value, 2) < 1e-30) {
+
+            squared_data.push_back(std::pow(value, 2) + 1e-30);///加上极小值，防止数据丢失
+        }
+        else {
+            squared_data.push_back(std::pow(value, 2));
+        }
+        //单点值的平方。小数变小；
+    }
+    // 使用滑动窗口计算每个窗口内的平均能量
+    std::vector<float> sliding_mean(data.size(), 0.0);
+    for (int i = 0; i < data.size(); ++i) {
+        for (int j = std::max(0, i - window_size / 2); j <= std::min(static_cast<int>(data.size()) - 1, i + window_size / 2); ++j) {
+            sliding_mean[i] += squared_data[j];
+        }
+        sliding_mean[i] /= window_size;
+    }
+    // agc缩放，根据，当前窗口能量大小进行
+    std::vector<float> agc_data(data.size(), 0.0);
+    for (int i = 0; i < data.size(); ++i) {
+        agc_data[i] = data[i] / std::sqrt(sliding_mean[i]);
+    }
+    
+    //数据显示部分
+    QChartView* ChartView_widget = new QChartView();
+    QChart* chart = new QChart();
+    QSplineSeries* series = new QSplineSeries();
+
+    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    for (int i = 0; i < agc_data.size(); ++i) {
+        series->append(i, agc_data[i]);
+    }
+    chart->addSeries(series);
+
+    // 创建坐标轴
+    QValueAxis* axisX = new QValueAxis;
+    QValueAxis* axisY = new QValueAxis;
+
+    // 设置坐标轴标签
+    axisX->setTitleText("sample number");
+    axisY->setTitleText("orignal_Ampli");
+
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+
+    // 将坐标轴添加到 QChart 中
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // 将系列关联到坐标轴
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    chart->legend()->hide();
+    QString title0 = QString("agc_data%1  trace").arg(agc_trace_i->value());
+    chart->setTitle(title0);
+    chart->setTitleFont(font);
+    //chart->createDefaultAxes();
+    chart->setTheme(QChart::ChartThemeLight);
+    ChartView_widget->setChart(chart);
+
+    ChartView_widget->show();
+
+    QChartView* ChartView_widget2 = new QChartView();
+    QChart* chart2 = new QChart();
+    QSplineSeries* series2 = new QSplineSeries();
+
+    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    for (size_t i = 0; i < data.size(); ++i) {
+        series2->append(i, data[i]);
+    }
+    chart2->addSeries(series2);
+
+    // 创建坐标轴
+    QValueAxis* axisX1 = new QValueAxis;
+    QValueAxis* axisY1 = new QValueAxis;
+
+    // 设置坐标轴标签
+    axisX1->setTitleText("sample number");
+    axisY1->setTitleText("after_agc_Ampli");
+
+
+    font.setPointSize(20);  // 设置字体大小
+    axisX1->setTitleFont(font);
+    axisY1->setTitleFont(font);
+
+    // 将坐标轴添加到 QChart 中
+    chart2->addAxis(axisX1, Qt::AlignBottom);
+    chart2->addAxis(axisY1, Qt::AlignLeft);
+
+    // 将系列关联到坐标轴
+    series2->attachAxis(axisX1);
+    series2->attachAxis(axisY1);
+
+    chart2->legend()->hide();
+    QString title1 = QString("orignal data:number   %1  trace").arg(agc_trace_i->value());
+    chart2->setTitle(title1);
+    chart2->setTitleFont(font);
+    //chart->createDefaultAxes();
+    chart2->setTheme(QChart::ChartThemeLight);
+    ChartView_widget2->setChart(chart2);
+
+    ChartView_widget2->show();
 
 }
-
+///agc保存
 void  Qt_segy_process::save_AGC_segy() {
     /// Write the 2D vector to the output file
     std::ofstream fileout;
@@ -810,9 +1082,29 @@ void  Qt_segy_process::save_AGC_segy() {
     fileout.close();
     ui.statusBar->showMessage(tr("saved AGC data successfully!"));
 }
-//计算一维数据的频谱
+///切除极小值，防止数据超出范围
+std::vector<std::vector<float>> Qt_segy_process::Exc_min(std::vector<std::vector<float>> matrix) 
+{
 
-void Qt_segy_process::opencv_fft() {
+    float cut_min = 1e-5;
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+        for (int j = 0; j < matrix[i].size(); ++j)
+
+            if (matrix[i][j] < cut_min && matrix[i][j]>-cut_min) {
+
+                matrix[i][j] = 0;
+            }
+            /*else {
+                matrix[i][j] = matrix[i][j];
+            }*/
+    }
+    return  matrix;
+}
+
+
+//计算一维数据的频谱
+void Qt_segy_process::opencv_fft_1d() {
 
     if (dataArray_real.empty()) {//先判断数据是否初始化
 
@@ -820,17 +1112,15 @@ void Qt_segy_process::opencv_fft() {
         ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
         return;
     }
-    
     vector<float> data;//存储单道数据空间
-    
 
     float sampling = fft_sample_rate->value();
+    fft_sample_rate->setMaximum(100000);
     std::vector<std::vector<float>> dataarray_fft = transposeMatrix(dataArray_real);//取出要处理的segy数据
 
     if (dataarray_fft.empty()) {
         return;
     }
-
     //int data_tracei = 30;
     data_trace_i->setMaximum(dataarray_fft[0].size());
 
@@ -857,7 +1147,7 @@ void Qt_segy_process::opencv_fft() {
     int L_freq = floor(data.size() / 2);
     for (int k = 1; k < L_freq + 1; k++)
     {
-        float ampli = sqrt(pow(amplite_Re[k], 2) + pow(amplite_Im[k], 2)) / L_freq;
+        float ampli = sqrt(pow(amplite_Re[k-1], 2) + pow(amplite_Im[k-1], 2)) / L_freq;
         Ampli.push_back(ampli);//FFT幅值
 
         float freq = ((float)sampling) / data.size() * k;
@@ -902,7 +1192,10 @@ void Qt_segy_process::opencv_fft() {
     series->attachAxis(axisY);
 
     chart->legend()->hide();
-    chart->setTitle("CV_algorithm_FFT");
+
+    QString title1 = QString("opencv_fft:number   %1  trace").arg(data_tracei);
+    
+    chart->setTitle(title1);
     chart->setTitleFont(font);
     //chart->createDefaultAxes();
     chart->setTheme(QChart::ChartThemeLight);
@@ -910,31 +1203,7 @@ void Qt_segy_process::opencv_fft() {
 
     ChartView_widget->show();
 }
-
-void Qt_segy_process::chart_fftshow() {
-
-    ///QChartView
-    QChartView* ChartView_widget = new QChartView();
-    QChart* chart = new QChart();
-    QSplineSeries* series = new QSplineSeries();
-
-    for (float i = 0; i < 100; i++) {
-
-        series->append(i, sin(0.5 * i));
-    }
-
-    chart->addSeries(series);
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-    chart->setTitle("test ignore");
-    chart->setTheme(QChart::ChartThemeDark);
-
-    ChartView_widget->setChart(chart);
-    ChartView_widget->show();
-}
-///单道数据agc
-
-void Qt_segy_process::trace_i_agc() {
+void Qt_segy_process::opencv_fft2d() {
 
     if (dataArray_real.empty()) {//先判断数据是否初始化
 
@@ -942,24 +1211,280 @@ void Qt_segy_process::trace_i_agc() {
         ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
         return;
     }
-    
-    std::vector<std::vector<float>> dataarray_agc = transposeMatrix(dataArray_real);//函数内部
+    fft_sample_rate->setMaximum(100000);//函数内部设置采样率最大值
+    float sampling = fft_sample_rate->value();
+    std::vector<std::vector<float>> dataarray_fft = transposeMatrix(dataArray_real);//取出要处理的segy数据
 
-    if (dataarray_agc.empty()) {
+    if (dataarray_fft.empty()) {
         return;
     }
-    vector<float> data;//存储单道数据空间
     //int data_tracei = 30;
-    data_trace_i->setMaximum(dataarray_agc[0].size());
+    data_trace_i->setMaximum(dataarray_fft[0].size());//设置最大道数
+    std::vector<std::vector<float>> fft_result_freq;//存储频率
+    std::vector<std::vector<float>> fft_result_amp;//存储频率对应的幅值
+    int num_traces = dataarray_fft[0].size();//获取道数 
+    ///初始化数据
+    
 
-    int data_tracei = data_trace_i->value();
-    for (int i = 0; i < dataarray_agc.size(); i++) {//获取指定i的单道数据
+    for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的计算规则计算二维数据
 
-        data.push_back(dataarray_agc[i][data_tracei]);//得到一维向量data
+        std::vector<float> amplite_Re;
+        std::vector<float> amplite_Im;
+        std::vector<float>Ampli; //保存频率幅度值
+        std::vector<float>Freq; //保存对应频率值
+        vector<float> data;//存储单道数据空间//放在循环外边，push_back，一维放在后面，出问题，放在循环里面进行更新；
+        data.reserve(dataarray_fft.size());
+
+        for (int i = 0; i < dataarray_fft.size(); i++) {//获取指定i的单道数据
+
+            data.push_back(dataarray_fft[i][data_tracei]);
+        }
+        
+        cv::Mat Data = cv::Mat(data);//数据转换为mat格式
+        cv::Mat planes1[] = { cv::Mat_<float>(Data), cv::Mat::zeros(Data.size(), CV_32F) };
+        cv::Mat planes_true1 = cv::Mat_<float>(Data);
+        cv::Mat Y1;
+        merge(planes1, 2, Y1);
+        dft(Y1, Y1);//傅里叶变换结果为复数.通道1存的是实部, 通道2存的是虚部
+        split(Y1, planes1); // plannes[0]=Re(DFT(I))即实部,plannes[1]=Im(DFT(I))即虚部
+
+        amplite_Re = planes1[0];//cv::Mat转为vector
+        amplite_Im = planes1[1];
+       
+        int L_freq = floor(data.size() / 2);
+        for (int k = 1; k < L_freq + 1; k++)
+        {
+            float ampli = sqrt(pow(amplite_Re[k-1], 2) + pow(amplite_Im[k-1], 2)) / L_freq;
+            Ampli.push_back(ampli);//FFT幅值
+
+            float freq = ((float)sampling) / data.size() * k;
+            Freq.push_back(freq);//一维频率值
+        }
+        // Store the result for this trace
+        fft_result_freq.push_back(Freq);//这里矩阵的方向变了，需要变回去
+        fft_result_amp.push_back(Ampli);
     }
 
 
+    fft_result_freq = transposeMatrix(fft_result_freq);//方向调整，按道显示；
+    fft_result_amp = transposeMatrix(fft_result_amp);
+
+    fft_result_freq = normalized(fft_result_freq);
+    fft_result_amp = normalized(fft_result_amp);
+
+    Mat show_image_freq(fft_result_freq.size(), fft_result_freq[0].size(), CV_8U);//创建mat数组；
+    Mat show_image_amp(fft_result_freq.size(), fft_result_freq[0].size(), CV_8U);//创建mat数组
+
+    show_image_freq = dataArray2image(fft_result_freq);
+    show_image_amp = dataArray2image(fft_result_amp);
+
+    cv::namedWindow("fft2d_freq", cv::WINDOW_NORMAL);
+    cv::imshow("fft2d_freq", show_image_freq); // 显示colorMap
+
+    cv::namedWindow("fft2d_amp", cv::WINDOW_NORMAL);
+    cv::imshow("fft2d_amp", show_image_amp); // 显示colorMap
+    waitKey(0);
+    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+
+
+    QString message = QString("image completed! row %1 ;clo %2;").arg(fft_result_freq.size()).arg(fft_result_freq[0].size());
+    ui.statusBar->showMessage(message);
+
+    ///单道显示
+    //QChartView* ChartView_widget = new QChartView();
+    //QChart* chart = new QChart();
+    //QSplineSeries* series = new QSplineSeries();
+
+    //for (size_t i = 0; i < fft_result_freq.size(); ++i) {
+    //    series->append(i, fft_result_freq[i][3]);   
+    //}
+    //chart->addSeries(series);
+    //ChartView_widget->setChart(chart);
+    //ChartView_widget->show();
+    ///取消Qchart显示
+
+    /*QString message2 = QString("data %1").arg(Freq[5]);
+    ui.statusBar->showMessage(message2);*/
+    /////QChartView
+    //QChartView* ChartView_widget = new QChartView();
+    //QChart* chart = new QChart();
+    //// 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    //QSplineSeries* series = new QSplineSeries();
+
+    //for (size_t i = 0; i < fft_result_freq.size(); ++i) {
+    //    
+    //    for (size_t j = 0; j < fft_result_freq[0].size(); ++j) {
+
+    //    series->append(fft_result_freq[i][j],fft_result_amp[i][j]);
+    //    }
+    //    
+    //}
+    //chart->addSeries(series);
+    //// 创建坐标轴
+    //QValueAxis* axisX = new QValueAxis;
+    //QValueAxis* axisY = new QValueAxis;
+
+    //// 设置坐标轴标签
+    //axisX->setTitleText("Freq");
+    //axisY->setTitleText("Ampli");
+
+    //QFont font;
+    //font.setPointSize(20);  // 设置字体大小
+    //axisX->setTitleFont(font);
+    //axisY->setTitleFont(font);
+
+    //// 将坐标轴添加到 QChart 中
+    //chart->addAxis(axisX, Qt::AlignBottom);
+    //chart->addAxis(axisY, Qt::AlignLeft);
+
+    //// 将系列关联到坐标轴
+    //series->attachAxis(axisX);
+    //series->attachAxis(axisY);
+
+    //chart->legend()->hide();
+    //chart->setTitle("CV_algorithm_FFT_2d");
+    //chart->setTitleFont(font);
+    ////chart->createDefaultAxes();
+    //chart->setTheme(QChart::ChartThemeLight);
+    //ChartView_widget->setChart(chart);
+
+    //ChartView_widget->show();
+
 }
+
+void Qt_segy_process::chart_fftshow() {
+
+    if (dataArray_real.empty()) {//先判断数据是否初始化
+
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    fft_sample_rate->setMaximum(100000);//函数内部设置采样率最大值
+    float sampling = fft_sample_rate->value();
+    std::vector<std::vector<float>> dataarray_fft = transposeMatrix(dataArray_real);//取出要处理的segy数据
+
+    if (dataarray_fft.empty()) {
+        return;
+    }
+    //int data_tracei = 30;
+    data_trace_i->setMaximum(dataarray_fft[0].size());//设置最大道数
+    std::vector<std::vector<float>> fft_result_freq;//存储频率
+    std::vector<std::vector<float>> fft_result_amp;//存储频率对应的幅值
+    int num_traces = dataarray_fft[0].size();//获取道数 
+    ///初始化数据
+
+
+    for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的计算规则计算二维数据
+
+        std::vector<float> amplite_Re;
+        std::vector<float> amplite_Im;
+        std::vector<float>Ampli; //保存频率幅度值
+        std::vector<float>Freq; //保存对应频率值
+        vector<float> data;//存储单道数据空间//放在循环外边，push_back，一维放在后面，出问题，放在循环里面进行更新；
+        data.reserve(dataarray_fft.size());
+
+        for (int i = 0; i < dataarray_fft.size(); i++) {//获取指定i的单道数据
+
+            data.push_back(dataarray_fft[i][data_tracei]);
+        }
+
+        cv::Mat Data = cv::Mat(data);//数据转换为mat格式
+        cv::Mat planes1[] = { cv::Mat_<float>(Data), cv::Mat::zeros(Data.size(), CV_32F) };
+        cv::Mat planes_true1 = cv::Mat_<float>(Data);
+        cv::Mat Y1;
+        merge(planes1, 2, Y1);
+        dft(Y1, Y1);//傅里叶变换结果为复数.通道1存的是实部, 通道2存的是虚部
+        split(Y1, planes1); // plannes[0]=Re(DFT(I))即实部,plannes[1]=Im(DFT(I))即虚部
+
+        amplite_Re = planes1[0];//cv::Mat转为vector
+        amplite_Im = planes1[1];
+
+        int L_freq = floor(data.size() / 2);
+        for (int k = 1; k < L_freq + 1; k++)
+        {
+            float ampli = sqrt(pow(amplite_Re[k - 1], 2) + pow(amplite_Im[k - 1], 2)) / L_freq;
+            Ampli.push_back(ampli);//FFT幅值
+
+            float freq = ((float)sampling) / data.size() * k;
+            Freq.push_back(freq);//一维频率值
+        }
+        // Store the result for this trace
+        fft_result_freq.push_back(Freq);//这里矩阵的方向变了，需要变回去
+        fft_result_amp.push_back(Ampli);
+    }
+    ///chart 多道显示
+    fft_result_freq = transposeMatrix(fft_result_freq);//方向调整，按道显示；
+    fft_result_amp = transposeMatrix(fft_result_amp);
+
+    //fft_result_freq = normalized(fft_result_freq);
+    //fft_result_amp = normalized(fft_result_amp);
+
+    //Mat show_image_freq(fft_result_freq.size(), fft_result_freq[0].size(), CV_8U);//创建mat数组；
+    //Mat show_image_amp(fft_result_freq.size(), fft_result_freq[0].size(), CV_8U);//创建mat数组
+
+    //show_image_freq = dataArray2image(fft_result_freq);
+    //show_image_amp = dataArray2image(fft_result_amp);
+
+    //cv::namedWindow("fft2d_freq", cv::WINDOW_NORMAL);
+    //cv::imshow("fft2d_freq", show_image_freq); // 显示colorMap
+
+    //cv::namedWindow("fft2d_amp", cv::WINDOW_NORMAL);
+    //cv::imshow("fft2d_amp", show_image_amp); // 显示colorMap
+    //waitKey(0);
+    //cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+
+
+    QString message = QString("image completed! row %1 ;clo %2;").arg(fft_result_freq.size()).arg(fft_result_freq[0].size());
+    ui.statusBar->showMessage(message);
+
+    ///QChartView
+    QChartView* ChartView_widget = new QChartView();
+    QChart* chart = new QChart();
+    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    QSplineSeries* series = new QSplineSeries();
+
+    for (size_t i = 0; i < fft_result_freq.size(); ++i) {
+
+        for (size_t j = 0; j < fft_result_freq[0].size(); ++j) {
+
+            series->append(fft_result_freq[i][j], fft_result_amp[i][j]);
+        }
+
+    }
+    chart->addSeries(series);
+    // 创建坐标轴
+    QValueAxis* axisX = new QValueAxis;
+    QValueAxis* axisY = new QValueAxis;
+
+    // 设置坐标轴标签
+    axisX->setTitleText("Freq");
+    axisY->setTitleText("Ampli");
+
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+
+    // 将坐标轴添加到 QChart 中
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // 将系列关联到坐标轴
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    chart->legend()->hide();
+    chart->setTitle("CV_algorithm_FFT_2d");
+    chart->setTitleFont(font);
+    //chart->createDefaultAxes();
+    chart->setTheme(QChart::ChartThemeLight);
+    ChartView_widget->setChart(chart);
+
+    ChartView_widget->show();
+
+}
+
 
 ///数据定义
 //std::vector<std::vector<float>> dataarray
@@ -1070,3 +1595,18 @@ void Qt_segy_process::trace_i_agc() {
 ////COLORMAP_HOT：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度*
 //
 //imshow("colormap", colorMap);
+
+///显示一维数据
+//QChartView* ChartView_widget = new QChartView();
+//QChart* chart = new QChart();
+//QSplineSeries* series = new QSplineSeries();
+//
+//for (size_t i = 0; i < fft_result_freq.size(); ++i) {
+//
+//    series->append(i, fft_result_freq[i][3]);
+//    ;
+//}
+//chart->addSeries(series);
+//ChartView_widget->setChart(chart);
+//ChartView_widget->show();
+

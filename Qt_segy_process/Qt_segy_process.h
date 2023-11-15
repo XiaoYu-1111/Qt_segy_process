@@ -81,6 +81,8 @@ public://公共成员segy
     std::vector<std::vector<float>> agc_save_data;//保存agc后的数据
 
     QSpinBox* windows_size_value;
+    QSpinBox* agc_trace_i;
+
     QDoubleSpinBox* fft_sample_rate;//设置浮点数
     QSpinBox* data_trace_i;
 
@@ -97,20 +99,23 @@ public slots://segy数据槽函数
 
     float ibm2float(int x);
     int swap4byte(int value);
-    std::vector<std::vector<float>> normalized(std::vector<std::vector<float>> dataArray);
+    std::vector<std::vector<float>> normalized(std::vector<std::vector<float>> matrix);
+    std::vector<std::vector<float>> normalizeColumns(std::vector<std::vector<float>> matrix);//标准化
     std::vector<std::vector<float>> transposeMatrix(std::vector<std::vector<float>> matrix);
     float findMinMaxValue(const std::vector<std::vector<float>>& matrix, int flag);
 
     cv::Mat dataArray2image(std::vector<std::vector<float>> dataArray);
 
     float calculateRMS(const std::vector<std::vector<float>>& data, int row, int col, int windowSize);
-
+    
+    void trace_i_agc();//单道数据agc
     void dataArrayAGC();//AGC部分
+    std::vector<std::vector<float>> Exc_min(std::vector<std::vector<float>> matrix);//切除极小值
 
-    void opencv_fft();//计算fft，opencv中自带
-    void chart_fftshow();
+    void opencv_fft_1d();//计算fft，opencv中自带
+    void opencv_fft2d();//多道数据fft
 
-    void trace_i_agc();
+    void chart_fftshow();//测试chart
 
 
 private:
