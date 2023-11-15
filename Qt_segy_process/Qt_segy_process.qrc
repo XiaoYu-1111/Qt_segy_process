@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/Qt_segy_process">
+        <file>icon/2.jpg</file>
+    </qresource>
+</RCC>
