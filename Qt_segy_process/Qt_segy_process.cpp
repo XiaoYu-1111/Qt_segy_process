@@ -202,26 +202,49 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget2->setStyleSheet("background-color:rgb(100,100,100);");
     page2_widget3->setStyleSheet("background-color:rgb(100,100,100);");
     ///page2_widget1
-    QPushButton* button_AGC = new QPushButton("AGC");
+    QPushButton* button_AGC = new QPushButton("AGC_2D");
     button_AGC->setStyleSheet(style1.button_save_style1);
-    button_AGC->setMaximumSize(200, 50);
+    button_AGC->setMaximumSize(100, 50);
     page2_widget1_layout->addWidget(button_AGC);
 
+    QPushButton* AGC_single = new QPushButton("AGC_tracei");
+    AGC_single->setStyleSheet(style1.button_save_style1);
+    AGC_single->setMaximumSize(100, 50);
+    page2_widget1_layout->addWidget(AGC_single);
+
+    QLabel* windows_size = new QLabel("windows_size");
+    windows_size->setMaximumSize(100, 50);
+    windows_size->setStyleSheet("background-color:lightgreen");
+    page2_widget1_layout->addWidget(windows_size);
+
     windows_size_value = new QSpinBox();//调节windows_size数值
-    windows_size_value->setToolTip("<html><font size='5' color='lightgreen'>This is iterations</font></html>");
+    windows_size_value->setToolTip("<html><font size='5' color='lightgreen'>AGC windows size!</font></html>");
     /*windows_size_value->setMinimum(1);
     windows_size_value->setMaximum(dataArray.size());*/
-    windows_size_value->setMaximumWidth(200);
+    windows_size_value->setMaximumWidth(100);
     windows_size_value->setMaximumHeight(50);
-
     windows_size_value->setStyleSheet("background-color:rgb(180,180,180)");
     page2_widget1_layout->addWidget(windows_size_value);
+
+    QLabel* label_trace_i = new QLabel("trace i");///分割标签
+    label_trace_i->setMaximumSize(100, 50);
+    label_trace_i->setStyleSheet("background-color:lightgreen");
+    page2_widget1_layout->addWidget(label_trace_i);
+
+    agc_trace_i = new QSpinBox();//调节windows_size数值
+    agc_trace_i->setToolTip("<html><font size='5' color='lightgreen'>AGC trace i!</font></html>");
+    /*windows_size_value->setMinimum(1);
+    windows_size_value->setMaximum(dataArray.size());*/
+    agc_trace_i->setMaximumWidth(100);
+    agc_trace_i->setMaximumHeight(50);
+    agc_trace_i->setStyleSheet("background-color:rgb(180,180,180)");
+    page2_widget1_layout->addWidget(agc_trace_i);
+
 
     QPushButton* AGC_save = new QPushButton("AGC_save");
     AGC_save->setStyleSheet(style1.button_save_style1);
     AGC_save->setMaximumSize(200, 50);
     page2_widget1_layout->addWidget(AGC_save);
-
 
     ///page2_widget2
     QPushButton* button_filter = new QPushButton("filter");
@@ -263,10 +286,10 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ///function connect
     connect(button_AGC, SIGNAL(clicked()), this, SLOT(dataArrayAGC()));
     connect(AGC_save, SIGNAL(clicked()), this, SLOT(save_AGC_segy()));
+    connect(AGC_single, SIGNAL(clicked()), this, SLOT(trace_i_agc()));
+
     ///fft1
     connect(button_fft, SIGNAL(clicked()), this, SLOT(opencv_fft()));//一维傅里叶变换
-
-
     connect(button_fft_show, SIGNAL(clicked()), this, SLOT(chart_fftshow()));
 
 }
@@ -615,6 +638,15 @@ std::vector<std::vector<float>> Qt_segy_process::normalized(std::vector<std::vec
     float newMin = 0.0f;  // 新的最小值
     float newMax = 1.0f;  // 新的最大值
 
+    // 先对数据进行标准化
+    //float meanValue = calculateMean(dataArray);
+    //float stdDev = calculateStdDev(dataArray);
+
+    //for (int i = 0; i < dataArray.size(); ++i) {
+    //    for (int j = 0; j < dataArray[i].size(); ++j) {
+    //        dataArray[i][j] = (dataArray[i][j] - meanValue) / stdDev;
+    //    }
+    //}
     for (int i = 0; i < dataArray.size(); ++i)
     {
         for (int j = 0; j < dataArray[i].size(); ++j)
@@ -704,21 +736,17 @@ void Qt_segy_process::dataArrayAGC() {//自适应增益控制
         return;
     }
     //std::vector<std::vector<float>>& data, int windowSize, float k
-    float k = 2.0f;
     std::vector<std::vector<float>> dataarray_agc = transposeMatrix(dataArray_real);
-    std::vector<std::vector<float>> dataarray_agc_rms;
     ///调整数值
     if (dataarray_agc.empty()){
         return ;
     }
-
     windows_size_value->setMinimum(1);
+    //windows_size_value->setValue(dataarray_agc.size() / 2) ;
     windows_size_value->setMaximum(dataarray_agc.size());
-
-    //int windowSize = 3;
-    int windowSize = windows_size_value->value();
+    //int windowSize = 3; 
+    int window_size = windows_size_value->value();//设定滑动窗口的大小
     
-
     if (dataarray_agc.empty()) {
 
         QString message = QString("empty!");
@@ -726,39 +754,48 @@ void Qt_segy_process::dataArrayAGC() {//自适应增益控制
         ui.statusBar->setStyleSheet("color:red;font-size=20px;");
         return ;
     }
-    else {
-        QString message = QString("OK!");
-        ui.statusBar->showMessage(message);
+
+std::vector<std::vector<float>> agc_result;
+
+int num_traces = dataarray_agc[0].size();//获取道数 
+
+for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的计算规则计算二维数据
+    
+    vector<float> data;//存储单道数据空间
+    data.reserve(dataarray_agc.size());
+    for (int i = 0; i < dataarray_agc.size(); i++) {//获取指定i的单道数据
+
+        data.push_back(dataarray_agc[i][data_tracei]);//得到一维向量data
     }
-
-    int numRows = static_cast<int>(dataarray_agc.size());
-    int numCols = static_cast<int>(dataarray_agc[0].size());
-
-    // 计算每个时间窗口的均方根值并应用AGC
-    for (int i = 0; i < numRows; ++i) {
-        
-        vector<float> row;
-        for (int j = 0; j < numCols; ++j) {
-            float rms = calculateRMS(dataarray_agc, i, j, windowSize);
-            row.push_back(rms);
-            dataarray_agc[i][j] = rms;
-            dataarray_agc_rms.push_back(row);//vector需要push_back
+    // 计算数据的平方
+    std::vector<float> squared_data;
+    squared_data.reserve(data.size());
+    for (const auto& value : data) {
+        squared_data.push_back(value * value);//单点值的平方。小数变小；
+    }
+    // 使用滑动窗口计算每个窗口内的平均能量
+    std::vector<float> sliding_mean(data.size(), 0.0);
+    for (int i = 0; i < data.size(); ++i) {
+        for (int j = std::max(0, i - window_size / 2); j <= std::min(static_cast<int>(data.size()) - 1, i + window_size / 2); ++j) {
+            sliding_mean[i] += squared_data[j];
         }
+        sliding_mean[i] /= window_size;
     }
-    if (windowSize > dataarray_agc.size()) {
-
-        QString message = QString("too much!");
-        ui.statusBar->showMessage(message);
-        ui.statusBar->setStyleSheet("color:red;font-size=20px;");
-        return ;
+    // agc缩放，根据，当前窗口能量大小进行
+    std::vector<float> agc_data(data.size(), 0.0);
+    for (int i = 0; i < data.size(); ++i) {
+        agc_data[i] = data[i] / std::sqrt(sliding_mean[i]);
     }
-
+    // Store the result for this trace
+    agc_result.push_back(agc_data);//这里矩阵的方向变了，需要变回去
+}
     std::vector<std::vector<float>> temp;
-    temp = dataarray_agc;//增益过后的数据,数据存储用
+    agc_result = transposeMatrix(agc_result);//变回去
+    temp = agc_result;//增益过后的数据,数据存储用
 
     agc_save_data = temp;
 
-    temp = normalized(temp);
+    temp = normalized(temp);//这里归一化后，模拟数据出现问题，需要改进。
     src= dataArray2image(temp);
 
     QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);
@@ -766,11 +803,11 @@ void Qt_segy_process::dataArrayAGC() {//自适应增益控制
 
     cv::namedWindow("AGC", cv::WINDOW_NORMAL);
     cv::imshow("AGC", src); // 显示colorMap
+    QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
+    ui.statusBar->showMessage(message, 10000);//显示10秒
+
     waitKey(0);
     cv::destroyAllWindows(); // 关闭所有OpenCV窗口
-
-    QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
-    ui.statusBar->showMessage(message);
 
 }
 
@@ -942,22 +979,130 @@ void Qt_segy_process::trace_i_agc() {
         ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
         return;
     }
-    
     std::vector<std::vector<float>> dataarray_agc = transposeMatrix(dataArray_real);//函数内部
 
     if (dataarray_agc.empty()) {
         return;
     }
     vector<float> data;//存储单道数据空间
-    //int data_tracei = 30;
-    data_trace_i->setMaximum(dataarray_agc[0].size());
+    
+    data_trace_i->setMaximum(dataarray_agc[0].size());//设置最大道数
 
-    int data_tracei = data_trace_i->value();
+    windows_size_value->setMinimum(1);//设置窗口最小值
+    //windows_size_value->setValue(dataarray_agc.size() / 2);
+    windows_size_value->setMaximum(dataarray_agc.size());//设置最大窗口长度
+
+    int data_tracei = agc_trace_i->value();
+
+    int window_size = windows_size_value->value();//设定滑动窗口的大小
+    //int data_tracei = data_trace_i->value();
+
     for (int i = 0; i < dataarray_agc.size(); i++) {//获取指定i的单道数据
 
         data.push_back(dataarray_agc[i][data_tracei]);//得到一维向量data
     }
+    // 计算数据的平方
+    std::vector<float> squared_data;
+    squared_data.reserve(data.size());
+    for (const auto& value : data) {
+        squared_data.push_back(value * value);//单点值的平方。
+    }
+    // 使用滑动窗口计算每个窗口内的平均能量
+    std::vector<float> sliding_mean(data.size(), 0.0);
+    for (int i = 0; i < data.size(); ++i) {
+        for (int j = std::max(0, i - window_size / 2); j <= std::min(static_cast<int>(data.size()) - 1, i + window_size / 2); ++j) {
+            sliding_mean[i] += squared_data[j];
+        }
+        sliding_mean[i] /= window_size;
+    }
+    // agc缩放，根据，当前窗口能量大小进行
+    std::vector<float> agc_data(data.size(), 0.0);
+    for (int i = 0; i < data.size(); ++i) {
+        agc_data[i] = data[i] / std::sqrt(sliding_mean[i]);
+    }
 
+    //数据显示部分
+    QChartView * ChartView_widget = new QChartView();
+    QChart* chart = new QChart();
+    QSplineSeries* series = new QSplineSeries();
+    
+    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    for (size_t i = 0; i < agc_data.size(); ++i) {
+        series->append(i, agc_data[i]);
+    }
+    chart->addSeries(series);
+    
+    // 创建坐标轴
+    QValueAxis* axisX = new QValueAxis;
+    QValueAxis* axisY = new QValueAxis;
+    
+    // 设置坐标轴标签
+    axisX->setTitleText("Freq");
+    axisY->setTitleText("Ampli");
+    
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+    
+    // 将坐标轴添加到 QChart 中
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    
+    // 将系列关联到坐标轴
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+    
+    chart->legend()->hide();
+    QString title0 = QString("agc_data%1  trace").arg(agc_trace_i->value());
+    chart->setTitle(title0);
+    chart->setTitleFont(font);
+    //chart->createDefaultAxes();
+    chart->setTheme(QChart::ChartThemeLight);
+    ChartView_widget->setChart(chart);
+    
+    ChartView_widget->show();
+
+    QChartView* ChartView_widget2 = new QChartView();
+    QChart* chart2 = new QChart();
+    QSplineSeries* series2 = new QSplineSeries();
+
+    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    for (size_t i = 0; i < data.size(); ++i) {
+        series2->append(i, data[i]);
+    }
+    chart2->addSeries(series2);
+
+    // 创建坐标轴
+    QValueAxis* axisX1 = new QValueAxis;
+    QValueAxis* axisY1 = new QValueAxis;
+
+    // 设置坐标轴标签
+    axisX1->setTitleText("sample");
+    axisY1->setTitleText("agc_Ampli");
+
+    
+    font.setPointSize(20);  // 设置字体大小
+    axisX1->setTitleFont(font);
+    axisY1->setTitleFont(font);
+
+    // 将坐标轴添加到 QChart 中
+    chart2->addAxis(axisX1, Qt::AlignBottom);
+    chart2->addAxis(axisY1, Qt::AlignLeft);
+
+    // 将系列关联到坐标轴
+    series2->attachAxis(axisX1);
+    series2->attachAxis(axisY1);
+
+    chart2->legend()->hide();
+    QString title1 = QString("orignal data:number   %1  trace").arg(agc_trace_i->value());
+    chart2->setTitle(title1);
+    chart2->setTitleFont(font);
+    //chart->createDefaultAxes();
+    chart2->setTheme(QChart::ChartThemeLight);
+    ChartView_widget2->setChart(chart2);
+
+    ChartView_widget2->show();
 
 }
 

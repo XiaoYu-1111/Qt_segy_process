@@ -81,6 +81,8 @@ public://公共成员segy
     std::vector<std::vector<float>> agc_save_data;//保存agc后的数据
 
     QSpinBox* windows_size_value;
+    QSpinBox* agc_trace_i;
+
     QDoubleSpinBox* fft_sample_rate;//设置浮点数
     QSpinBox* data_trace_i;
 
