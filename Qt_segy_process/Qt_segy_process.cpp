@@ -932,6 +932,8 @@ void Qt_segy_process::chart_fftshow() {
     ChartView_widget->setChart(chart);
     ChartView_widget->show();
 }
+///单道数据agc
+
 void Qt_segy_process::trace_i_agc() {
 
     if (dataArray_real.empty()) {//先判断数据是否初始化
