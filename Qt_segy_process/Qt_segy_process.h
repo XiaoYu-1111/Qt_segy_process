@@ -30,6 +30,10 @@
 #include <QLineSeries>
 #include <QFont>
 
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#include <QGraphicsLineItem>
+
 class Qt_segy_process : public QMainWindow
 {
     Q_OBJECT
@@ -48,7 +52,6 @@ public:
     QWidget* main_left_Widget;
     QWidget* main_center_Widget;
     QWidget* main_right_Widget;
-
 
     QStackedWidget* stackedWidget1;
     QWidget* page1;//页面成员声明
@@ -77,12 +80,9 @@ public://公共成员segy
     std::vector<std::vector<float>> dataArray_real;// 真实数据
     std::vector<std::vector<float>> dataArray_save;// 最终数据
 
-
     std::vector<std::vector<float>> agc_save_data;//保存agc后的数据
-
     QSpinBox* windows_size_value;
     QSpinBox* agc_trace_i;
-
     QDoubleSpinBox* fft_sample_rate;//设置浮点数
     QSpinBox* data_trace_i;
 
@@ -117,6 +117,38 @@ public slots://segy数据槽函数
 
     void chart_fftshow();//测试chart
 
+    void matrix_table_show();
+    void WiggleView_show_H();//wiggle显示
+    void WiggleView_show_V();//wiggle显示
+    void updataWigglePlot();//更新wiggle;
+
+    void Dial_1_ValueChanged(int value);
+
+public:
+
+    QGraphicsView* wiggleView;
+
+    QDial* wiggle_dial_1;
+    /*QDial* wiggle_dial_2;*/
+    //QDial* wiggle_dial_3;
+    //QDial* wiggle_dial_4;
+
+    //QLabel* label_dial_1;
+
+    int traceHeight;//每道的高度
+    int traceSpacing;//道之间间距
+    int sampleSpacing;//采样点之间间距
+    
+
+public:
+    QWidget* widget_info;//信息窗口
+    QPushButton* info_close;
+
+public slots:
+    ///toolbar
+    void show_version_info();//显示版本信息
+    void closeVersionInfo();
+    bool eventFilter(QObject* obj, QEvent* event);
 
 private:
     Ui::Qt_segy_processClass ui;
