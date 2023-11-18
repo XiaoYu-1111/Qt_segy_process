@@ -149,7 +149,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
 
     ///toolbar部分
     //part1
-    QAction* myAction1 = new QAction("My Action", this);//主动作行为
+    QAction* myAction1 = new QAction("Main", this);//主动作行为
     // 创建下拉菜单并添加格子选项
     QMenu* myMenu = new QMenu(this);
     QAction* option1Action = new QAction("Option 1", this);
@@ -159,6 +159,18 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     // 将下拉菜单关联到动作
     myAction1->setMenu(myMenu);
     ui.mainToolBar->addAction(myAction1);
+    //part data change
+    QAction* myAction_datachange = new QAction("Data", this);
+    QMenu* datachange_menu = new QMenu(this);
+    QAction* option1_agcdata2dataarray = new QAction("Agc2data", this);
+    QAction* option1_get_realdata = new QAction("Get_realdata", this);
+    datachange_menu->addAction(option1_agcdata2dataarray);
+    datachange_menu->addAction(option1_get_realdata);
+
+    myAction_datachange->setMenu(datachange_menu);
+
+    ui.mainToolBar->addAction(myAction_datachange);
+
     //part_version
     QAction* myAction2 = new QAction("version", this);//创建version页面入口
     QMenu* myMenu_version = new QMenu(this);//创建version菜单
@@ -172,7 +184,8 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ///toolbar部分solt
 
     connect(version_info, SIGNAL(triggered()), this, SLOT(show_version_info()));
-    
+    connect(option1_agcdata2dataarray, SIGNAL(triggered()), this, SLOT(agcdata2dataarray()));
+    connect(option1_get_realdata, SIGNAL(triggered()), this, SLOT(get_orignal_real()));
     
 
     ///page1
@@ -204,7 +217,6 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     textEdit1->setStyleSheet("background-color:rgb(255,255,255);font-size:20px; ");
     page1_widget1_layout->addWidget(textEdit1);
     textEdit1->setPlainText("version_1.0,author by rain!");
-
 
     //page2
     QVBoxLayout* page2_layout = new QVBoxLayout(page2);
@@ -346,7 +358,6 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     tableWidget->setStyleSheet(style1.button_main);
     page3_layout->addWidget(tableWidget);
 
-
     QPushButton* wiggle_button_H = new QPushButton("Wiggle_H");
     wiggle_button_H->setMaximumSize(200, 50);
     wiggle_button_H->setStyleSheet(style1.button_main);
@@ -357,14 +368,18 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     wiggle_button_V->setStyleSheet(style1.button_main);
     page3_layout->addWidget(wiggle_button_V);
 
+    QPushButton* Save_Wiggle = new QPushButton("Save_Wiggle");
+    Save_Wiggle->setMaximumSize(200, 50);
+    Save_Wiggle->setStyleSheet(style1.button_main);
+    page3_layout->addWidget(Save_Wiggle);
+
     ///page3   @slot
 
     connect(tableWidget, SIGNAL(clicked()), this, SLOT(matrix_table_show()));
     connect(wiggle_button_H, SIGNAL(clicked()), this, SLOT(WiggleView_show_H()));
     connect(wiggle_button_V, SIGNAL(clicked()), this, SLOT(WiggleView_show_V()));
+    connect(Save_Wiggle, SIGNAL(clicked()), this, SLOT(saveWiggle_1()));
 
-    connect(wiggle_dial_1, SIGNAL(valueChanged(int )), this, SLOT(Dial_1_ValueChanged(int)));
-    
 }
 
 Qt_segy_process::~Qt_segy_process()
@@ -894,7 +909,6 @@ for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的
         else {
             squared_data.push_back(std::pow(value, 2) );
         }
-
         //单点值的平方。小数变小；
     }
     // 使用滑动窗口计算每个窗口内的平均能量
@@ -905,9 +919,7 @@ for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的
         }
         sliding_mean[i] /= window_size;
     }
-
     std::vector<float> agc_data(data.size(), 0.0);
-    
     for (int i = 0; i < data.size(); ++i) {
         agc_data[i] = data[i] / std::sqrt(sliding_mean[i]);
     }
@@ -1157,8 +1169,6 @@ std::vector<std::vector<float>> Qt_segy_process::Exc_min(std::vector<std::vector
     }
     return  matrix;
 }
-
-
 //计算一维数据的频谱
 void Qt_segy_process::opencv_fft_1d() {
 
@@ -1259,6 +1269,7 @@ void Qt_segy_process::opencv_fft_1d() {
 
     ChartView_widget->show();
 }
+//计算二维数据的频谱并显示
 void Qt_segy_process::opencv_fft2d() {
 
     if (dataArray_real.empty()) {//先判断数据是否初始化
@@ -1407,9 +1418,8 @@ void Qt_segy_process::opencv_fft2d() {
     //ChartView_widget->show();
 
 }
-
-void Qt_segy_process::chart_fftshow() {
-
+//计算所有地震道的频谱chart显示
+void Qt_segy_process::chart_fftshow() {//绘制出每一道，比较耗时
     if (dataArray_real.empty()) {//先判断数据是否初始化
 
         ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
@@ -1429,8 +1439,6 @@ void Qt_segy_process::chart_fftshow() {
     std::vector<std::vector<float>> fft_result_amp;//存储频率对应的幅值
     int num_traces = dataarray_fft[0].size();//获取道数 
     ///初始化数据
-
-
     for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的计算规则计算二维数据
 
         std::vector<float> amplite_Re;
@@ -1489,8 +1497,6 @@ void Qt_segy_process::chart_fftshow() {
     //cv::imshow("fft2d_amp", show_image_amp); // 显示colorMap
     //waitKey(0);
     //cv::destroyAllWindows(); // 关闭所有OpenCV窗口
-
-
     QString message = QString("image completed! row %1 ;clo %2;").arg(fft_result_freq.size()).arg(fft_result_freq[0].size());
     ui.statusBar->showMessage(message);
 
@@ -1540,7 +1546,6 @@ void Qt_segy_process::chart_fftshow() {
     ChartView_widget->show();
 
 }
-
 //显示数据表格
 void Qt_segy_process::matrix_table_show() {
 
@@ -1553,7 +1558,6 @@ void Qt_segy_process::matrix_table_show() {
     std::vector<std::vector<float>> matrix = transposeMatrix(dataArray_real);///原始数据是按照样本道，row显示；
     // 创建 QTableWidget
     QTableWidget* tableWidget = new QTableWidget;
-
     tableWidget->setMinimumSize(600, 400);
     // 设置表格的行数和列数
     tableWidget->setRowCount(matrix.size());
@@ -1567,11 +1571,11 @@ void Qt_segy_process::matrix_table_show() {
     }
     // 显示表格
     tableWidget->show();
-    QWidget* wid1 = new QWidget();
+    /*QWidget* wid1 = new QWidget();
     wid1->setMinimumSize(600, 400);
-    wid1->show();
+    wid1->show();*/
 }
-//wiggle显示地震数据
+//wiggle显示地震数据horizontal direction
 void Qt_segy_process::WiggleView_show_H() {
 
     ui.statusBar->setStyleSheet("background-color:orange");
@@ -1623,23 +1627,19 @@ void Qt_segy_process::WiggleView_show_H() {
             scene->addItem(lineItem);
         }
     }
-
     // 设置场景大小
     scene->setSceneRect(scene->itemsBoundingRect());
-
     // 将场景设置给 QGraphicsView
     wiggleView->setScene(scene);
-
     //// 设置视图大小
     //wiggleView->setFixedSize(800, 600);
 
     // 显示 QGraphicsView
     wiggleView->show();
 }
-
+//wiggle显示地震数据vertical direction
 void Qt_segy_process::WiggleView_show_V() {
         ui.statusBar->setStyleSheet("background-color:orange");
-
         //判断数据
         std::vector<std::vector<float>> matrix;
         if (dataArray_real.empty()) {
@@ -1663,40 +1663,37 @@ void Qt_segy_process::WiggleView_show_V() {
         QHBoxLayout* wiggle_widget3_layout = new QHBoxLayout(wiggle_widget3);
 
         wiggle_main_layout->addWidget(wiggle_widget1);
-        wiggle_main_layout->addWidget(wiggle_widget2);
+        wiggle_main_layout->addWidget(wiggle_widget2);//添加三层
         wiggle_main_layout->addWidget(wiggle_widget3);
 
-        // 创建 QDial 控件
+        // 创建 s四个QDial 控件
+        //traceSpacing = wiggle_dial_1->value();//道间距
+        //sampleSpacing = wiggle_dial_2->value();//采样点间距
+        //traceHeight = wiggle_dial_3->value();//每道高度，最大值
+        //line_width_wiggle = wiggle_dial_4->value();//wiggle线宽
         wiggle_dial_1 = new QDial();
-        wiggle_dial_1->setRange(0, 100); wiggle_dial_1->setSingleStep(1);
-        // 创建 QLabel 用于显示当前值
-        QLabel* label_dial_1=new QLabel();
+        wiggle_dial_1->setNotchesVisible(true);
+        wiggle_dial_1->setRange(1, 50); wiggle_dial_1->setSingleStep(1); wiggle_dial_1->setValue(10);//设置初始值
+        label_dial_1 =new QLabel("1");
         label_dial_1->setAlignment(Qt::AlignHCenter);
-        label_dial_1->setText(QString("Value: %1").arg(wiggle_dial_1->value()));
- 
-        QDial* wiggle_dial_2 = new QDial();
-        wiggle_dial_2->setRange(0, 100);  wiggle_dial_2->setSingleStep(1);
-        // 创建 QLabel 用于显示当前值
-        QLabel* label_dial_2 = new QLabel();
+
+        wiggle_dial_2 = new QDial();
+        wiggle_dial_2->setRange(1, 5);  wiggle_dial_2->setSingleStep(1);wiggle_dial_2->setValue(1);//设置初始值
+        wiggle_dial_2->setNotchesVisible(true);
+        label_dial_2 = new QLabel("2");
         label_dial_2->setAlignment(Qt::AlignHCenter);
-        label_dial_2->setText(QString("Value: %1").arg(wiggle_dial_2->value()));
 
-        QDial* wiggle_dial_3 = new QDial();
-
-        wiggle_dial_3->setRange(0, 100); wiggle_dial_3->setSingleStep(1);
-        // 创建 QLabel 用于显示当前值
-        QLabel* label_dial_3 = new QLabel();
+        wiggle_dial_3 = new QDial();
+        wiggle_dial_3->setNotchesVisible(true);
+        wiggle_dial_3->setRange(0, 100);  wiggle_dial_3->setSingleStep(1); wiggle_dial_3->setValue(20);//设置初始值
+        label_dial_3 = new QLabel("3");
         label_dial_3->setAlignment(Qt::AlignHCenter);
-        label_dial_3->setText(QString("Value: %1").arg(wiggle_dial_3->value()));
 
-        QDial* wiggle_dial_4 = new QDial();
-
-        wiggle_dial_4->setRange(0, 100);  wiggle_dial_4->setSingleStep(1);
-        // 创建 QLabel 用于显示当前值
-        QLabel* label_dial_4 = new QLabel();
+        wiggle_dial_4 = new QDial();
+        wiggle_dial_4->setNotchesVisible(true);
+        wiggle_dial_4->setRange(1, 10);  wiggle_dial_4->setSingleStep(1); wiggle_dial_4->setValue(1);//设置初始值
+        label_dial_4 = new QLabel("4");
         label_dial_4->setAlignment(Qt::AlignHCenter);
-        label_dial_4->setText(QString("Value: %1").arg(wiggle_dial_4->value()));
-
 
         /// 创建 QGraphicsView 和 QGraphicsScene
         wiggleView = new QGraphicsView();
@@ -1762,9 +1759,15 @@ void Qt_segy_process::WiggleView_show_V() {
         wiggle_widget3_layout->addWidget(wiggle_dial_3);
         wiggle_widget3_layout->addWidget(wiggle_dial_4);
         wiggle_widget->show();
-        connect(wiggle_dial_1, SIGNAL(valueChanged(int)), this, SLOT(Dial_1_ValueChanged(int)));
-    }
 
+        //将dial与参数联系，更新图像；
+        connect(wiggle_dial_1, SIGNAL(valueChanged(int)), this, SLOT(Dial_1_ValueChanged(int)));
+        connect(wiggle_dial_2, SIGNAL(valueChanged(int)), this, SLOT(Dial_2_ValueChanged(int)));
+        connect(wiggle_dial_3, SIGNAL(valueChanged(int)), this, SLOT(Dial_3_ValueChanged(int)));
+        connect(wiggle_dial_4, SIGNAL(valueChanged(int)), this, SLOT(Dial_4_ValueChanged(int)));
+
+    }
+//更新回调函数
 void Qt_segy_process::updataWigglePlot() {
         /*ui.statusBar->setStyleSheet("background-color:orange");*/
         //判断数据
@@ -1777,8 +1780,6 @@ void Qt_segy_process::updataWigglePlot() {
         matrix = dataArray_real;
         matrix = normalized(matrix);
         /// 创建 QGraphicsView 和 QGraphicsScene
-
-        //label_dial_1->setText(QString("Value: %1").arg(wiggle_dial_1->value()));//更新标签数值
         //wiggleView = new QGraphicsView();
         wiggleView->setWindowTitle("WiggleView_show_V");
         QGraphicsScene* scene = new QGraphicsScene();
@@ -1786,14 +1787,20 @@ void Qt_segy_process::updataWigglePlot() {
         QBrush backgroundBrush(Qt::white);  // 设置为白色背景，也可以使用纹理或其他颜色
         scene->setBackgroundBrush(backgroundBrush);
         // 设置绘图参数
-        int traceHeight = 20;//每道的高度
+        traceHeight = 20;//每道的高度
         //int traceSpacing = 10;//道之间间距
-        int sampleSpacing = 1;//采样点之间间距
-        traceSpacing= wiggle_dial_1->value();
+        sampleSpacing = 1;//采样点之间间距
+        line_width_wiggle = 1;
+        traceSpacing= wiggle_dial_1->value();//道间距
+        sampleSpacing = wiggle_dial_2->value();//采样点间距
+        traceHeight = wiggle_dial_3->value();//每道高度，最大值
+        line_width_wiggle = wiggle_dial_4->value();//wiggle线宽
+
+
         // 设置 Wiggle 图颜色
         QPen wigglePen;
         wigglePen.setColor(Qt::black);  // 设置颜色为红色
-        wigglePen.setWidth(1);
+        wigglePen.setWidth(line_width_wiggle);
         for (size_t i = 0; i < matrix.size(); ++i) {
             const std::vector<float>& trace = matrix[i];//取出每一行
             // 考虑地震道之间的垂直间隔
@@ -1830,15 +1837,101 @@ void Qt_segy_process::updataWigglePlot() {
         // 显示 QGraphicsView
         wiggleView->show();
 }
+//保存QGraphicsView* view图像
+void Qt_segy_process::saveWiggleViewImage(QGraphicsView* view) {
+    // Render the QGraphicsView content to a QPixmap
+    QPixmap pixmap(view->viewport()->size());
+    // Create a QPainter to render into the QPixmap
+    QPainter painter(&pixmap);
+    // Render the QGraphicsView content to the QPixmap
+    view->render(&painter);
+    // End painting
+    painter.end();
+    // Ask the user for the file name and location
+    QString filePath = QFileDialog::getSaveFileName(view, "Save Image", "", "Images (*.png *.jpg *.bmp)");
+    // Check if the user canceled the dialog
+    if (!filePath.isEmpty()) {
+        // Save the QPixmap to the specified file
+        pixmap.save(filePath);
+    }
+    QString message = QString("wiggle save completed! ");
+    ui.statusBar->showMessage(message);
+}
+//保存wiggle图像
+void Qt_segy_process::saveWiggle_1() {
+    // Check if wiggleView is created successfully
+    if (wiggleView != nullptr) {
+        // 设置场景大小
+        // Save the content to an image file
+        saveWiggleViewImage(wiggleView);
+    }
+    else {
+        // Handle the case where wiggleView creation failed
+        qDebug() << "Failed to create wiggleView.";
+        ui.statusBar->setStyleSheet("background-color:red");
+        return;
+    }
+
+}
+
+//将agc的数据转换到dataarray中，调换
+void Qt_segy_process::agcdata2dataarray() {
+    if (dataArray_real.empty()) {//先判断数据是否初始化
+
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    if (agc_save_data.empty()) {//先判断数据是否初始化
+
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr(" please load the agc data first."), 3000);
+        return;
+    }
+    dataArray_real = transposeMatrix(agc_save_data);
+
+    QString message = QString("AGC loaded! Trace simple %1 ;Trace number %2;").arg(agc_save_data.size()).arg(agc_save_data[0].size());
+    ui.statusBar->showMessage(message);
+}
+//从原始路径中获取原始数据
+void Qt_segy_process::get_orignal_real() {
+    std::string filePath = OpenFile_segy.toStdString();//get file_path
+    if (OpenFile_segy.isEmpty()) {
+        qDebug() << "No file is selected!";
+        ui.statusBar->showMessage(QString("no file selected! Please open a file first"));
+        return;
+    }
+    dataArray = getsegyarray(filePath);
+    dataArray_real = dataArray;//二维向量格式，row为地震道;
+    QString message = QString("Real data loaded! Trace simple %1 ;Trace number %2;").arg(dataArray_real.size()).arg(dataArray_real[0].size());
+    ui.statusBar->showMessage(message);
+}
 
 void Qt_segy_process::Dial_1_ValueChanged(int value) {
     ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
-
     ui.statusBar->showMessage(QString("dial updata:%1").arg(wiggle_dial_1->value()), 3000);
     updataWigglePlot();
-    //WiggleView_show_V();
+    label_dial_1->setText(QString("trace space Value: %1").arg(wiggle_dial_1->value()));//更新标签数值
 }
-
+void Qt_segy_process::Dial_2_ValueChanged(int value) {
+    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    ui.statusBar->showMessage(QString("dial updata:%1").arg(wiggle_dial_2->value()), 3000);
+    updataWigglePlot();
+    label_dial_2->setText(QString("height Value: %1").arg(wiggle_dial_2->value()));//更新标签数值
+}
+void Qt_segy_process::Dial_3_ValueChanged(int value) {
+    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    ui.statusBar->showMessage(QString("dial updata:%1").arg(wiggle_dial_3->value()), 3000);
+    updataWigglePlot();
+    label_dial_3->setText(QString("max Value: %1").arg(wiggle_dial_3->value()));//更新标签数值
+}
+void Qt_segy_process::Dial_4_ValueChanged(int value) {
+    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    ui.statusBar->showMessage(QString("dial updata:%1").arg(wiggle_dial_4->value()), 3000);
+    updataWigglePlot();
+    label_dial_4->setText(QString("line width Value: %1").arg(wiggle_dial_4->value()));//更新标签数值
+    label_dial_4->setText(QString("line width Value: %1").arg(wiggle_dial_4->value()));//更新标签数值
+}
 
 bool Qt_segy_process::eventFilter(QObject* obj, QEvent* event) {//鼠标滚轮缩放
     if (obj == wiggleView->viewport() && event->type() == QEvent::Wheel) {
@@ -1904,7 +1997,6 @@ void Qt_segy_process::show_version_info() {
 void Qt_segy_process::closeVersionInfo() {
     widget_info->close();
 }
-
 ///数据定义
 //std::vector<std::vector<float>> dataarray
 ///获取单道数据

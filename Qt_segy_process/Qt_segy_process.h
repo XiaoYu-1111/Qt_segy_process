@@ -33,6 +33,8 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
+#include <QDial>
+#include <QPainter>
 
 class Qt_segy_process : public QMainWindow
 {
@@ -85,6 +87,25 @@ public://公共成员segy
     QSpinBox* agc_trace_i;
     QDoubleSpinBox* fft_sample_rate;//设置浮点数
     QSpinBox* data_trace_i;
+    
+    //wiggle
+    QGraphicsView* wiggleView;
+    
+    QDial* wiggle_dial_1;
+    QDial* wiggle_dial_2;
+    QDial* wiggle_dial_3;
+    QDial* wiggle_dial_4;
+
+
+    QLabel* label_dial_1;
+    QLabel* label_dial_2;
+    QLabel* label_dial_3;
+    QLabel* label_dial_4;
+
+    int traceHeight;//每道的高度
+    int traceSpacing;//道之间间距
+    int sampleSpacing;//采样点之间间距
+    int line_width_wiggle;
 
 public slots://segy数据槽函数
 
@@ -121,24 +142,15 @@ public slots://segy数据槽函数
     void WiggleView_show_H();//wiggle显示
     void WiggleView_show_V();//wiggle显示
     void updataWigglePlot();//更新wiggle;
+    void saveWiggleViewImage(QGraphicsView* view);
+    void saveWiggle_1();
 
     void Dial_1_ValueChanged(int value);
-
-public:
-
-    QGraphicsView* wiggleView;
-
-    QDial* wiggle_dial_1;
-    /*QDial* wiggle_dial_2;*/
-    //QDial* wiggle_dial_3;
-    //QDial* wiggle_dial_4;
-
-    //QLabel* label_dial_1;
-
-    int traceHeight;//每道的高度
-    int traceSpacing;//道之间间距
-    int sampleSpacing;//采样点之间间距
-    
+    void Dial_2_ValueChanged(int value);
+    void Dial_3_ValueChanged(int value);
+    void Dial_4_ValueChanged(int value);
+    void agcdata2dataarray();//将当前默认数据更换为agc数据
+    void get_orignal_real();//获取实际数据data_real
 
 public:
     QWidget* widget_info;//信息窗口
