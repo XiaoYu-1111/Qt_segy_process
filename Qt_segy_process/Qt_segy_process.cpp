@@ -1,11 +1,11 @@
 #include "Qt_segy_process.h"
 #include"style.h"
+
 #include<QVBoxLayout>
 #include<QHBoxLayout>
 #include<QString>
 #include<QTextEdit>
-
-#include <fstream>
+#include <fstream>//header cpp std;
 #include <cstring>
 #include<cmath>
 #include <vector>
@@ -15,8 +15,9 @@
 using namespace cv;
 using namespace std;
 
+
 Qt_segy_process::Qt_segy_process(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), isWiggleViewCreated(false)
 {
     ui.setupUi(this);
     this->setWindowTitle("QT-SEGY-processing software");
@@ -95,20 +96,25 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     Page1_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page1_button);
 
-    QPushButton* Page2_button = new QPushButton("page2_process");//open
+    QPushButton* Page2_button = new QPushButton("2D_process");//open
     Page2_button->setStyleSheet(style1.button_save_style1);
     Page2_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page2_button);
 
-    QPushButton* Page3_button = new QPushButton("page3_Table_cell");//open
+    QPushButton* Page3_button = new QPushButton("2D Page");//open
     Page3_button->setStyleSheet(style1.button_save_style1);
     Page3_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page3_button);
 
-    QPushButton* Page4_button = new QPushButton("page4_button");//open
+    QPushButton* Page4_button = new QPushButton("3D Page");//open
     Page4_button->setStyleSheet(style1.button_save_style1);
     Page4_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page4_button);
+
+    QPushButton* Page5_button = new QPushButton("page5_button");//open
+    Page5_button->setStyleSheet(style1.button_save_style1);
+    Page5_button->setMinimumSize(80, 40);
+    right_layout->addWidget(Page5_button);
 
     //中间页面
     QVBoxLayout* center_layout = new QVBoxLayout(main_center_Widget);
@@ -146,6 +152,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(Page2_button, SIGNAL(clicked()), this, SLOT(on_stackpage2_change_clicked()));// 切换到第二页
     connect(Page3_button, SIGNAL(clicked()), this, SLOT(on_stackpage3_change_clicked()));// 切换到第三页
     connect(Page4_button, SIGNAL(clicked()), this, SLOT(on_stackpage4_change_clicked()));// 切换到第四页
+    connect(Page5_button, SIGNAL(clicked()), this, SLOT(on_stackpage5_change_clicked()));
 
     ///toolbar部分
     //part1
@@ -180,13 +187,11 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     myAction2->setMenu(myMenu_version);
     ui.mainToolBar->addAction(myAction2);//添加进入口到toolbar
 
-
     ///toolbar部分solt
 
     connect(version_info, SIGNAL(triggered()), this, SLOT(show_version_info()));
     connect(option1_agcdata2dataarray, SIGNAL(triggered()), this, SLOT(agcdata2dataarray()));
     connect(option1_get_realdata, SIGNAL(triggered()), this, SLOT(get_orignal_real()));
-    
 
     ///page1
     QVBoxLayout* page1_layout = new QVBoxLayout(page1);
@@ -224,23 +229,27 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     QWidget* page2_widget1 = new QWidget();
     QWidget* page2_widget2 = new QWidget();
     QWidget* page2_widget3 = new QWidget();
+    QWidget* page2_widget4 = new QWidget();
 
     QHBoxLayout* page2_widget1_layout = new QHBoxLayout(page2_widget1);
     QHBoxLayout* page2_widget2_layout = new QHBoxLayout(page2_widget2);
     QHBoxLayout* page2_widget3_layout = new QHBoxLayout(page2_widget3);
+    QHBoxLayout* page2_widget4_layout = new QHBoxLayout(page2_widget4);
 
     page2_widget1->setMaximumHeight(100);
     page2_widget2->setMaximumHeight(100);
     page2_widget3->setMaximumHeight(100);
+    page2_widget4->setMaximumHeight(100);
 
     page2_layout->addWidget(page2_widget1);
+    page2_layout->addWidget(page2_widget3);//按照提加进层的顺序排布
     page2_layout->addWidget(page2_widget2);
-    page2_layout->addWidget(page2_widget3);
-
+    page2_layout->addWidget(page2_widget4);
 
     page2_widget1->setStyleSheet("background-color:rgb(100,100,100);");
     page2_widget2->setStyleSheet("background-color:rgb(100,100,100);");
     page2_widget3->setStyleSheet("background-color:rgb(100,100,100);");
+    page2_widget4->setStyleSheet("background-color:rgb(100,100,100);");
     ///page2_widget1
     QPushButton* button_AGC = new QPushButton("AGC_2D");
     button_AGC->setStyleSheet(style1.button_save_style1);
@@ -292,6 +301,30 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     button_filter->setMaximumSize(200, 50);
     button_filter->setStyleSheet(style1.button_save_style1);
 
+    QPushButton* button_chart2 = new QPushButton("audio imput");
+    page2_widget2_layout->addWidget(button_chart2);
+    button_chart2->setMaximumSize(200, 50);
+    button_chart2->setStyleSheet(style1.button_save_style1);
+
+    QPushButton* button_polarchart = new QPushButton("polarchart");
+    page2_widget2_layout->addWidget(button_polarchart);
+    button_polarchart->setMaximumSize(200, 50);
+    button_polarchart->setStyleSheet(style1.button_save_style1);
+
+    QPushButton* button_polarchart2 = new QPushButton("polarchart2");
+    page2_widget2_layout->addWidget(button_polarchart2);
+    button_polarchart2->setMaximumSize(200, 50);
+    button_polarchart2->setStyleSheet(style1.button_save_style1);
+    //slot
+
+    connect(button_filter, SIGNAL(clicked()), this, SLOT(drawcurve()));
+
+    connect(button_chart2, SIGNAL(clicked()), this, SLOT(drawcurve2()));
+
+    connect(button_polarchart, SIGNAL(clicked()), this, SLOT(PolarChart()));
+    connect(button_polarchart2, SIGNAL(clicked()), this, SLOT(PolarChart2()));
+
+
     ///page2_widget3
     QPushButton* button_fft = new QPushButton("FFT_1d");
     page2_widget3_layout->addWidget(button_fft);
@@ -336,52 +369,60 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget3_layout->addWidget(button_fft_show);
     button_fft_show->setMaximumSize(200, 50);
     button_fft_show->setStyleSheet(style1.button_save_style1);
-
+    ///page2_widget4
+    QPushButton* button_STFT = new QPushButton("STFT");
+    page2_widget4_layout->addWidget(button_STFT);
+    button_STFT->setMaximumSize(200, 50);
+    button_STFT->setStyleSheet(style1.button_save_style1);
 
     ///function connect
     connect(button_AGC, SIGNAL(clicked()), this, SLOT(dataArrayAGC()));
     connect(AGC_save, SIGNAL(clicked()), this, SLOT(save_AGC_segy()));
     connect(AGC_single, SIGNAL(clicked()), this, SLOT(trace_i_agc()));
-
     ///fft1
     connect(button_fft, SIGNAL(clicked()), this, SLOT(opencv_fft_1d()));//一维傅里叶变换
     connect(button_fft_2d, SIGNAL(clicked()), this, SLOT(opencv_fft2d()));//一维傅里叶变换
-
     connect(button_fft_show, SIGNAL(clicked()), this, SLOT(chart_fftshow()));
+    ///SF_function
+    connect(button_STFT, SIGNAL(clicked()), this, SLOT(SF_function()));
 
-    //page2显示表格
+    ///page3显示表格
     QVBoxLayout* page3_layout = new QVBoxLayout(page3);
-
     QPushButton* tableWidget = new QPushButton("table");
     
     tableWidget->setMaximumSize(200, 50);
     tableWidget->setStyleSheet(style1.button_main);
     page3_layout->addWidget(tableWidget);
-
+    //page3显示wiggle
     QPushButton* wiggle_button_H = new QPushButton("Wiggle_H");
     wiggle_button_H->setMaximumSize(200, 50);
     wiggle_button_H->setStyleSheet(style1.button_main);
     page3_layout->addWidget(wiggle_button_H);
-
     QPushButton* wiggle_button_V = new QPushButton("Wiggle_V");
     wiggle_button_V->setMaximumSize(200, 50);
     wiggle_button_V->setStyleSheet(style1.button_main);
     page3_layout->addWidget(wiggle_button_V);
-
+    //page3eiggle保存
     QPushButton* Save_Wiggle = new QPushButton("Save_Wiggle");
     Save_Wiggle->setMaximumSize(200, 50);
     Save_Wiggle->setStyleSheet(style1.button_main);
     page3_layout->addWidget(Save_Wiggle);
-
     ///page3   @slot
-
     connect(tableWidget, SIGNAL(clicked()), this, SLOT(matrix_table_show()));
     connect(wiggle_button_H, SIGNAL(clicked()), this, SLOT(WiggleView_show_H()));
     connect(wiggle_button_V, SIGNAL(clicked()), this, SLOT(WiggleView_show_V()));
     connect(Save_Wiggle, SIGNAL(clicked()), this, SLOT(saveWiggle_1()));
+    
+    //page4显示3D
+    QVBoxLayout* page4_layout = new QVBoxLayout(page4);
+
+    QPushButton* data_3d_but1 = new QPushButton("3D");
+    data_3d_but1->setStyleSheet(style1.button_main);
+    page4_layout->addWidget(data_3d_but1);
+    //slot
+    connect(data_3d_but1, SIGNAL(clicked()), this, SLOT(draw3DData()));
 
 }
-
 Qt_segy_process::~Qt_segy_process()
 {}
 void Qt_segy_process::on_stackpage1_change_clicked()//按钮点击切换到第一页槽函数内容
@@ -414,7 +455,13 @@ void Qt_segy_process::on_stackpage4_change_clicked()//按钮点击切换到第三页槽函数
     stylesheet_QT style3;
     ui.statusBar->setStyleSheet(style3.styleSheet_bar);
 }
-
+void Qt_segy_process::on_stackpage5_change_clicked()//按钮点击切换到第三页槽函数内容
+{
+    stackedWidget1->setCurrentIndex(4);
+    ui.statusBar->showMessage("Page4-->", 5000);
+    stylesheet_QT style3;
+    ui.statusBar->setStyleSheet(style3.styleSheet_bar);
+}
 //SEISMIC-SEGY——part//open
 void Qt_segy_process::open_segy() {
     qDebug() << "input data!";
@@ -1153,7 +1200,6 @@ void  Qt_segy_process::save_AGC_segy() {
 ///切除极小值，防止数据超出范围
 std::vector<std::vector<float>> Qt_segy_process::Exc_min(std::vector<std::vector<float>> matrix) 
 {
-
     float cut_min = 1e-5;
     for (int i = 0; i < matrix.size(); ++i)
     {
@@ -1271,7 +1317,6 @@ void Qt_segy_process::opencv_fft_1d() {
 }
 //计算二维数据的频谱并显示
 void Qt_segy_process::opencv_fft2d() {
-
     if (dataArray_real.empty()) {//先判断数据是否初始化
 
         ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
@@ -1292,7 +1337,6 @@ void Qt_segy_process::opencv_fft2d() {
     int num_traces = dataarray_fft[0].size();//获取道数 
     ///初始化数据
     
-
     for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的计算规则计算二维数据
 
         std::vector<float> amplite_Re;
@@ -1651,6 +1695,7 @@ void Qt_segy_process::WiggleView_show_V() {
         matrix = normalized(matrix);
 
         QWidget* wiggle_widget = new QWidget();
+        isWiggleViewCreated = true;
         //设置控件调整显示；
         QVBoxLayout* wiggle_main_layout = new QVBoxLayout(wiggle_widget);
 
@@ -1746,9 +1791,7 @@ void Qt_segy_process::WiggleView_show_V() {
         // 显示 QGraphicsView
         wiggleView->show();
 
-
         wiggle_widget1_layout->addWidget(wiggleView);
-
         wiggle_widget2_layout->addWidget(label_dial_1);
         wiggle_widget2_layout->addWidget(label_dial_2);
         wiggle_widget2_layout->addWidget(label_dial_3);
@@ -1860,20 +1903,25 @@ void Qt_segy_process::saveWiggleViewImage(QGraphicsView* view) {
 //保存wiggle图像
 void Qt_segy_process::saveWiggle_1() {
     // Check if wiggleView is created successfully
-    if (wiggleView != nullptr) {
-        // 设置场景大小
-        // Save the content to an image file
-        saveWiggleViewImage(wiggleView);
+    if (isWiggleViewCreated) {
+        // 检查 wiggleView 是否包含内容
+        if (wiggleView != nullptr && !wiggleView->scene()->items().isEmpty()) {
+            // wiggleView 中有内容
+            saveWiggleViewImage(wiggleView);
+        }
+        else {
+            // wiggleView 中没有内容
+            qDebug() << "wiggleView is empty.";
+            ui.statusBar->setStyleSheet("background-color:red");
+        }
     }
     else {
         // Handle the case where wiggleView creation failed
-        qDebug() << "Failed to create wiggleView.";
+        qDebug() << "wiggleView is not created.";
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
         ui.statusBar->setStyleSheet("background-color:red");
-        return;
     }
-
 }
-
 //将agc的数据转换到dataarray中，调换
 void Qt_segy_process::agcdata2dataarray() {
     if (dataArray_real.empty()) {//先判断数据是否初始化
@@ -1906,7 +1954,7 @@ void Qt_segy_process::get_orignal_real() {
     QString message = QString("Real data loaded! Trace simple %1 ;Trace number %2;").arg(dataArray_real.size()).arg(dataArray_real[0].size());
     ui.statusBar->showMessage(message);
 }
-
+//dial改变wiggle参数
 void Qt_segy_process::Dial_1_ValueChanged(int value) {
     ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
     ui.statusBar->showMessage(QString("dial updata:%1").arg(wiggle_dial_1->value()), 3000);
@@ -1918,7 +1966,7 @@ void Qt_segy_process::Dial_2_ValueChanged(int value) {
     ui.statusBar->showMessage(QString("dial updata:%1").arg(wiggle_dial_2->value()), 3000);
     updataWigglePlot();
     label_dial_2->setText(QString("height Value: %1").arg(wiggle_dial_2->value()));//更新标签数值
-}
+} 
 void Qt_segy_process::Dial_3_ValueChanged(int value) {
     ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
     ui.statusBar->showMessage(QString("dial updata:%1").arg(wiggle_dial_3->value()), 3000);
@@ -1932,7 +1980,7 @@ void Qt_segy_process::Dial_4_ValueChanged(int value) {
     label_dial_4->setText(QString("line width Value: %1").arg(wiggle_dial_4->value()));//更新标签数值
     label_dial_4->setText(QString("line width Value: %1").arg(wiggle_dial_4->value()));//更新标签数值
 }
-
+//wiggle中鼠标移动事件重绘
 bool Qt_segy_process::eventFilter(QObject* obj, QEvent* event) {//鼠标滚轮缩放
     if (obj == wiggleView->viewport() && event->type() == QEvent::Wheel) {
         QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
@@ -1947,6 +1995,404 @@ bool Qt_segy_process::eventFilter(QObject* obj, QEvent* event) {//鼠标滚轮缩放
         return true;
     }
     return QObject::eventFilter(obj, event);
+}
+//3d绘图
+void Qt_segy_process::draw3DData() {
+    if (dataArray_real.empty()) {//先判断数据是否初始化
+    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+    return;
+}
+    QWidget* data_3d = new QWidget();
+    data_3d->setMinimumSize(800, 600);
+    // 创建 Q3DScatter
+    Q3DScatter* scatter = new Q3DScatter();
+    // 添加3D散点系列
+    QScatter3DSeries* series = new QScatter3DSeries;
+    series->setItemLabelFormat(QStringLiteral("(@xLabel @yLabel @zLabel)"));
+    series->setMesh(QAbstract3DSeries::MeshSphere);
+    series->setMeshSmooth(true);
+
+    // 添加数据
+    QScatterDataArray data;
+    std::vector<std::vector<float>> matrixData;
+    dataArray = normalized(dataArray_real);
+    matrixData = dataArray_real;
+    // 将 matrixData 转换为 QVector<QVector3D>
+    for (int i = 0; i < dataArray_real.size(); ++i) {
+        for (int j = 0; j < dataArray_real[i].size(); ++j) {
+
+            data << QVector3D( i, j, matrixData[i][j]);
+        }
+    }
+    series->dataProxy()->addItems(data);
+    scatter->addSeries(series);
+    // 设置坐标轴
+    scatter->axisX()->setTitle(QStringLiteral("X Axis-trace"));
+    scatter->axisY()->setTitle(QStringLiteral("Y Axis-sample"));
+    scatter->axisZ()->setTitle(QStringLiteral("Z Axis-value"));
+    //设置坐标轴范围
+    /////判断最大值最小值是否小于1
+    //float minValue = findMinMaxValue(dataArray, 0);
+    //float maxValue = findMinMaxValue(dataArray, 1);//获取
+    //scatter->axisX()->setRange(0, dataArray.size());
+    //scatter->axisY()->setRange(0, dataArray[0].size());
+    //scatter->axisZ()->setRange(minValue, maxValue);  // minZValue 和 maxZValue 是你的数据中 Z 值的最小和最大值
+    //scatter->activeTheme()->setType(Q3DTheme::ThemeQt);
+    // 设置视角
+    scatter->scene()->activeCamera()->setCameraPreset(Q3DCamera::CameraPresetFront);
+    // 设置布局
+   // 使用 QPointer 或者 QVBoxLayout 添加 Q3DScatter
+    QPointer<QWidget> scatterContainer = QWidget::createWindowContainer(scatter);
+    QVBoxLayout* layout = new QVBoxLayout(data_3d);
+    layout->addWidget(scatterContainer);
+
+    data_3d->show();
+}
+//S变换
+void Qt_segy_process::SF_function() {
+
+    if (dataArray.empty()) {//先判断数据是否初始化
+
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    vector<double> s;//存储单道数据空间
+    // 生成时间序列 t
+    vector<double> t;
+
+    int data_tracei = 80;
+
+    for (int i = 0; i < dataArray.size(); i++) {//获取指定i的单道数据
+
+        s.push_back(dataArray[i][data_tracei]);//得到一维向量data
+    }
+    double dt = 0.001;
+    int time_len = s.size();
+    for (int i = 0; i < time_len; i++) {
+        t.push_back(i * dt);
+    }
+    // 检查数据
+    if (t.empty() || s.empty() || t.size() != s.size()) {
+        cerr << "Error: Invalid input data." << endl;
+        return ; // 或者采取其他合适的处理方式
+    }
+    for (double time : t) {
+        // 以正弦波为例，频率为10 Hz，振幅为1
+        double signal = sin(2 * M_PI * 10 * time);
+        s.push_back(signal);
+    }
+    double freqlow = 1.0;
+    double freqhigh = 1000.0;
+    double alpha = 1.0;
+
+    // 计算S变换
+    vector<vector<complex<double>>> data_s = st(t, s, freqlow, freqhigh, alpha);
+
+    // 获取第一个元素的实部
+    double realPart = data_s[0][0].real();
+
+    // 也可以遍历整个二维向量
+    for (const auto& row : data_s) {
+        for (const auto& elem : row) {
+            double elemReal = elem.real();
+            // 在这里使用 elemReal
+        }
+    }
+
+        // 遍历整个二维向量并打印实部
+    std::vector<std::vector<float>> temp(data_s.size(), std::vector<float>(data_s[0].size()));
+
+    for (int i = 0; i < data_s.size(); ++i) {
+        for (int j = 0; j < data_s[i].size(); ++j) {
+            cout << "(" << data_s[i][j].real() << ", " << data_s[i][j].imag() << ") ";
+            
+            temp[i][j] = static_cast<float>(data_s[i][j].real());
+        }
+        cout << endl;
+    }
+    //temp = normalized(temp);
+    src = dataArray2image(temp);
+    QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(temp.size()).arg(temp[0].size());
+    ui.statusBar->showMessage(message);
+
+
+    QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);//灰度图
+    label_picture->setPixmap(QPixmap::fromImage(qtImage2).scaled(label_picture->size()));
+    cv::namedWindow("AGC", cv::WINDOW_NORMAL);
+    cv::imshow("AGC", src); // 显示colorMap
+    waitKey(0);
+    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+
+    
+
+    //QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
+//ui.statusBar->showMessage(message);
+}
+std::vector<std::vector<std::complex<double>>> Qt_segy_process::st(const std::vector<double>& t, const std::vector<double>& s, double freqlow, double freqhigh, double alpha) {
+    ui.statusBar->setStyleSheet("background-color:red");
+
+    int TimeLen = t.size();
+    double dt = t[1] - t[0];
+    int nLevel = static_cast<int>((freqhigh - freqlow) / alpha) + 1;
+
+    vector<vector<complex<double>>> wcoefs(nLevel, vector<complex<double>>(TimeLen, { 0.0, 0.0 }));
+
+    for (int m = 0; m < nLevel; ++m) {
+        double f = freqlow + m * alpha;
+        double sigma_f = 1.0 / f;
+
+        for (int n = 0; n < TimeLen; ++n) {
+            double Gauss_st = (1.0 / (sqrt(2 * M_PI) * sigma_f)) * exp(-0.5 * pow(n * dt - t[n], 2) / pow(sigma_f, 2)) * cos(2 * M_PI * f * t[n]);
+            wcoefs[m][n] = { 0.0, 0.0 };
+
+            for (int i = 0; i < TimeLen; ++i) {
+                wcoefs[m][n] += s[i] * Gauss_st * complex<double>(cos(2 * M_PI * f * t[i]), sin(2 * M_PI * f * t[i])) * dt;
+            }
+        }
+    }
+
+    return wcoefs;
+}
+//绘制曲线
+void Qt_segy_process::drawcurve()
+{
+    QChart *chart = new QChart();
+
+    QChartView* chartview = new QChartView();
+
+    QSplineSeries* series = new QSplineSeries();
+
+
+    for (int i = 0; i <= 100; i ++){ 
+        series->append(i, i*i); 
+    }
+        
+    //添加坐标轴
+    QValueAxis* axisX = new QValueAxis();
+    QValueAxis* axisY = new QValueAxis();
+
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+    axisX->setTitleText("XXX");
+    axisY->setTitleText("YYY");
+    axisX->setTickCount(11);//设置刻度数量
+    axisY->setTickCount(11);
+    chart->addAxis(axisX, Qt::AlignBottom);//设置位置
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+    chart->addSeries(series);
+    chartview->setChart(chart);
+
+    axisX->setRange(0, 100);
+    axisY->setRange(0, 100);
+
+    chartview->setRenderHint(QPainter::Antialiasing);
+
+    chartview->show();
+
+}
+
+void Qt_segy_process::drawcurve2() {
+   
+   /* QWidget* widget2 = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout();*/
+
+    const QAudioDevice inputDevice = QMediaDevices::defaultAudioInput();
+    if (inputDevice.isNull()) {
+        QMessageBox::warning(nullptr, "audio",
+            "There is no audio input device available.");
+        return;
+    }
+    else {
+        ui.statusBar->showMessage("ok");
+    }
+
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    QChartView* chartview = new QChartView();
+    chartview->setMinimumHeight(400);
+    chartview->setStyleSheet("backgroung-color:black");
+    QChart* chart = new QChart();
+    QSplineSeries* series1 = new QSplineSeries();
+    QTextEdit* textedit = new QTextEdit();
+    
+    QString message = QString("inputDevice%1").arg(inputDevice.description());
+    textedit->setText(message);
+    textedit->setMaximumHeight(200);
+    textedit->setStyleSheet("background-color:rgb(255,255,255);font-size:20px; ");
+
+    layout->addWidget(chartview);
+    chartview->setChart(chart);
+    layout->addWidget(textedit);
+
+    //设置音频采样格式
+    QAudioFormat formatAudio;
+    formatAudio.setSampleRate(20000);
+    formatAudio.setChannelCount(1);
+    formatAudio.setSampleFormat(QAudioFormat::UInt8);
+    //判断采样格式是否支持
+    QAudioDevice info(QMediaDevices::defaultAudioOutput());
+    if (!info.isFormatSupported(formatAudio)) {
+        qWarning() << "Raw audio format not supported by backend, cannot play audio.";
+        return;
+    }
+    else {
+        ui.statusBar->showMessage(" format ok");
+    }
+    //设置音频源
+    audio = new QAudioSource(inputDevice, formatAudio, this);
+    
+    QBuffer audiodata;
+
+    audio->start();
+    QTimer::singleShot(3000, this, &Qt_segy_process::stopRecording);
+    //
+    // 此处需要存储audio数据
+    //
+    //// 创建坐标轴
+    QValueAxis* axisX = new QValueAxis;
+    QValueAxis* axisY = new QValueAxis;
+
+    // 设置坐标轴标签
+    axisX->setTitleText("time");
+    axisY->setTitleText("Ampli");
+
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+
+    // 将坐标轴添加到 QChart 中
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    axisX->setRange(0, 100);
+    axisY->setRange(0, 100);
+
+    // 将系列关联到坐标轴
+    series1->attachAxis(axisX);
+    series1->attachAxis(axisY);
+
+    chart->legend()->hide();
+    chart->setTitle("data from"+ inputDevice.description()+" ok");
+    chart->setTitleFont(font);
+    chart->createDefaultAxes();
+    chart->setTheme(QChart::ChartThemeLight);
+
+    chart->addSeries(series1);
+    widget->show();
+}
+void Qt_segy_process::stopRecording()
+{
+    audio->stop();
+
+    delete audio;
+    ui.statusBar -> showMessage("stopRecording");
+}
+
+
+void Qt_segy_process::PolarChart() {
+    const qreal angularMin = -100;
+    const qreal angularMax = 100;
+
+    const qreal radialMin = -100;
+    const qreal radialMax = 100;
+
+    //数据
+    QScatterSeries* series1 = new QScatterSeries();
+    series1->setName("scatter");
+    for (int i = angularMin; i <= angularMax; i += 10)
+        series1->append(i, (i / radialMax) * radialMax + 8.0);
+
+    //模型
+    QPolarChart* chart = new QPolarChart();
+    chart->addSeries(series1);
+
+    //轴
+    QValueAxis* angularAxis = new QValueAxis();
+    angularAxis->setTickCount(9); // First and last ticks are co-located on 0/360 angle.
+    angularAxis->setLabelFormat("%.1f");
+    angularAxis->setShadesVisible(true);
+    angularAxis->setShadesBrush(QBrush(QColor(249, 249, 255)));
+    chart->addAxis(angularAxis, QPolarChart::PolarOrientationAngular);
+
+    QValueAxis* radialAxis = new QValueAxis();
+    radialAxis->setTickCount(9);
+    radialAxis->setLabelFormat("%d");
+    chart->addAxis(radialAxis, QPolarChart::PolarOrientationRadial);
+
+    series1->attachAxis(radialAxis);
+    series1->attachAxis(angularAxis);
+
+    radialAxis->setRange(radialMin, radialMax);
+    angularAxis->setRange(angularMin, angularMax);
+
+    QChartView* chartView = new QChartView();
+
+    //最后加载到视图上
+
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->show();
+}
+void Qt_segy_process::PolarChart2() {
+    
+    //const qreal angularMin = -100;
+    //const qreal angularMax = 100;
+
+    //const qreal radialMin = -100;
+    //const qreal radialMax = 100;
+    //模型
+    QPolarChart* chart = new QPolarChart();
+    
+    //数据
+    //QScatterSeries* series1 = new QScatterSeries();
+    //series1->setName("scatter");
+    //for (int i = angularMin; i <= angularMax; i += 10)
+    //    series1->append(i, (i / radialMax) * radialMax + 8.0);
+
+    QLineSeries* series = new QLineSeries();//线性
+    series->setPen(QPen(QColor(Qt::blue)));
+    for (int i = 0; i <= 100; i++) {
+        series->append(i / 100.0 * 360.0, qSin(i / 100.0 * M_PI * 6) * 2);
+    }
+    QAreaSeries* series4 = new QAreaSeries();//区域
+    series4->setUpperSeries(series);
+    series4->setPen(QPen(QColor(255, 150, 20, 0)));
+    series4->setBrush(QColor(255, 150, 20, 60));
+    
+    //chart->addSeries(series1);
+    chart->addSeries(series);
+    chart->addSeries(series4);
+    //轴
+    QValueAxis* angularAxis = new QValueAxis();
+    angularAxis->setTickCount(9); // First and last ticks are co-located on 0/360 angle.
+    angularAxis->setLabelFormat("%.1f");
+    angularAxis->setShadesVisible(true);
+    angularAxis->setShadesBrush(QBrush(QColor(249, 249, 255)));
+    chart->addAxis(angularAxis, QPolarChart::PolarOrientationAngular);
+
+    QValueAxis* radialAxis = new QValueAxis();
+    radialAxis->setTickCount(9);
+    radialAxis->setLabelFormat("%d");
+    chart->addAxis(radialAxis, QPolarChart::PolarOrientationRadial);
+
+    //radialAxis->setRange(radialMin, radialMax);
+    //angularAxis->setRange(angularMin, angularMax);
+    series->attachAxis(angularAxis);
+    series->attachAxis(radialAxis);
+    series4->attachAxis(angularAxis);
+    series4->attachAxis(radialAxis);
+
+    QChartView* chartView = new QChartView();
+    //最后加载到视图上
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->show();
 }
 //toolbar显示version
 void Qt_segy_process::show_version_info() {
@@ -1999,6 +2445,7 @@ void Qt_segy_process::closeVersionInfo() {
 }
 ///数据定义
 //std::vector<std::vector<float>> dataarray
+
 ///获取单道数据
 //for (int i = 0; i < dataarray_agc.size(); i++) {//获取指定i的单道数据
 //
@@ -2061,6 +2508,9 @@ void Qt_segy_process::closeVersionInfo() {
 //ui.statusBar->showMessage(QString("disk location:%1").arg(OpenFile_segy), 3000);
 //QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
 //ui.statusBar->showMessage(message);
+//
+//QString message = QString("support");
+//ui.statusBar->showMessage(message);
 ///新建按钮
 //QPushButton* Page4_button = new QPushButton("page4_button");//open
 //Page4_button->setStyleSheet(style1.button_save_style1);
@@ -2075,7 +2525,7 @@ void Qt_segy_process::closeVersionInfo() {
 //data_trace_i->setMaximumHeight(50);
 //data_trace_i->setStyleSheet("background-color:rgb(200,200,200)");
 //page2_widget3_layout->addWidget(data_trace_i);//设置层布局
-///数据转换为图片显示
+///数据转换为图片在cv窗口显示
 //std::vector<std::vector<float>> temp;
 //temp = dataarray;//增益过后的数据,数据存储用
 //temp = normalized(temp);
@@ -2106,7 +2556,6 @@ void Qt_segy_process::closeVersionInfo() {
 ////COLORMAP_HOT：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度*
 //
 //imshow("colormap", colorMap);
-
 ///显示一维数据
 //QChartView* ChartView_widget = new QChartView();
 //QChart* chart = new QChart();
@@ -2120,4 +2569,40 @@ void Qt_segy_process::closeVersionInfo() {
 //chart->addSeries(series);
 //ChartView_widget->setChart(chart);
 //ChartView_widget->show();
-
+///一维数据绘制曲线
+//QChart* chart = new QChart();
+//
+//QChartView* chartview = new QChartView();
+//
+//QSplineSeries* series = new QSplineSeries();
+//
+//
+//for (int i = 0; i <= 100; i++) {
+//    series->append(i, i * i);
+//}
+//
+////添加坐标轴
+//QValueAxis* axisX = new QValueAxis();
+//QValueAxis* axisY = new QValueAxis();
+//
+//QFont font;
+//font.setPointSize(20);  // 设置字体大小
+//axisX->setTitleFont(font);
+//axisY->setTitleFont(font);
+//axisX->setTitleText("XXX");
+//axisY->setTitleText("YYY");
+//axisX->setTickCount(11);//设置刻度数量
+//axisY->setTickCount(11);
+//chart->addAxis(axisX, Qt::AlignBottom);//设置位置
+//chart->addAxis(axisY, Qt::AlignLeft);
+//series->attachAxis(axisX);
+//series->attachAxis(axisY);
+//chart->addSeries(series);
+//chartview->setChart(chart);
+//
+//axisX->setRange(0, 100);
+//axisY->setRange(0, 100);
+//
+//chartview->setRenderHint(QPainter::Antialiasing);
+//
+//chartview->show();

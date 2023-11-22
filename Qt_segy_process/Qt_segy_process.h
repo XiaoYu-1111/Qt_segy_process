@@ -36,6 +36,18 @@
 #include <QDial>
 #include <QPainter>
 
+#include <QtDataVisualization>
+#include <vector>
+
+#include<QAudioDevice>
+#include<qmediadevices.h>
+#include <QAudioInput>
+#include <QAudioSource>
+#include<QAudioSink>
+#include <QAudioFormat>
+
+class XYSeriesIODevice;
+
 class Qt_segy_process : public QMainWindow
 {
     Q_OBJECT
@@ -49,6 +61,7 @@ public slots:
     void on_stackpage2_change_clicked();//页面跳转1
     void on_stackpage3_change_clicked();//页面跳转1
     void on_stackpage4_change_clicked();//页面跳转1
+    void on_stackpage5_change_clicked();//页面跳转1
 
 public:
     QWidget* main_left_Widget;
@@ -90,6 +103,7 @@ public://公共成员segy
     
     //wiggle
     QGraphicsView* wiggleView;
+    bool isWiggleViewCreated;
     
     QDial* wiggle_dial_1;
     QDial* wiggle_dial_2;
@@ -106,6 +120,9 @@ public://公共成员segy
     int traceSpacing;//道之间间距
     int sampleSpacing;//采样点之间间距
     int line_width_wiggle;
+
+    QAudioSource* audio;
+
 
 public slots://segy数据槽函数
 
@@ -151,6 +168,22 @@ public slots://segy数据槽函数
     void Dial_4_ValueChanged(int value);
     void agcdata2dataarray();//将当前默认数据更换为agc数据
     void get_orignal_real();//获取实际数据data_real
+    //3d
+    void draw3DData();
+    //S变换
+    std::vector<std::vector<std::complex<double>>> st(const std::vector<double>& t, const std::vector<double>& s, double freqlow, double freqhigh, double alpha);
+    void SF_function();
+    //静态曲线
+    void drawcurve();
+    //动态曲线
+    void drawcurve2();
+    void stopRecording();
+    
+    //雷达图
+    void PolarChart();
+    void PolarChart2();
+
+
 
 public:
     QWidget* widget_info;//信息窗口
