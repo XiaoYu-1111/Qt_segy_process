@@ -38,6 +38,7 @@
 
 #include <QtDataVisualization>
 #include <vector>
+#include <QRandomGenerator>
 
 #include<QAudioDevice>
 #include<qmediadevices.h>
@@ -45,6 +46,8 @@
 #include <QAudioSource>
 #include<QAudioSink>
 #include <QAudioFormat>
+
+#include"xyseriesiodevice.h"
 
 class XYSeriesIODevice;
 
@@ -121,8 +124,16 @@ public://公共成员segy
     int sampleSpacing;//采样点之间间距
     int line_width_wiggle;
 
-    QAudioSource* audio;
+    QValueAxis* axisX_dynamic;//动态曲线
+    QValueAxis* axisY_dynamic;
+    QSplineSeries* series_dynamic;
+    int x_index=0;
 
+    XYSeriesIODevice* m_device;//音频部分
+    QChart* m_chart ; 
+    QLineSeries* m_series;
+    QAudioInput* m_audioInput;
+    QAudioSource* m_audioSource;
 
 public slots://segy数据槽函数
 
@@ -141,7 +152,8 @@ public slots://segy数据槽函数
     std::vector<std::vector<float>> normalizeColumns(std::vector<std::vector<float>> matrix);//标准化
     std::vector<std::vector<float>> transposeMatrix(std::vector<std::vector<float>> matrix);
     float findMinMaxValue(const std::vector<std::vector<float>>& matrix, int flag);
-
+    double findExtremeValue(const std::vector<double>& s, int flag);
+    float findExtremeValue(const std::vector<float>& s, int flag);//重载
     cv::Mat dataArray2image(std::vector<std::vector<float>> dataArray);
 
     float calculateRMS(const std::vector<std::vector<float>>& data, int row, int col, int windowSize);
@@ -171,19 +183,20 @@ public slots://segy数据槽函数
     //3d
     void draw3DData();
     //S变换
-    std::vector<std::vector<std::complex<double>>> st(const std::vector<double>& t, const std::vector<double>& s, double freqlow, double freqhigh, double alpha);
-    void SF_function();
+    std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
+        double freqlow, double freqhigh, double alpha);
+
+    void STOCK_function();
     //静态曲线
     void drawcurve();
-    //动态曲线
-    void drawcurve2();
-    void stopRecording();
-    
+    void draw_dynamic_curve();
+    void Timeout_handler();
+    //sudio曲线
+    void draw_audio_curve2();
+
     //雷达图
     void PolarChart();
     void PolarChart2();
-
-
 
 public:
     QWidget* widget_info;//信息窗口

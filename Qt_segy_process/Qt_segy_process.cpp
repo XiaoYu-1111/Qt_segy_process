@@ -9,8 +9,14 @@
 #include <cstring>
 #include<cmath>
 #include <vector>
+#include <numeric>
+#include <complex>
 #include <algorithm> 
 
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include <vector>
 
 using namespace cv;
 using namespace std;
@@ -301,6 +307,11 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     button_filter->setMaximumSize(200, 50);
     button_filter->setStyleSheet(style1.button_save_style1);
 
+    QPushButton* button_dynamic = new QPushButton("dynamic");
+    page2_widget2_layout->addWidget(button_dynamic);
+    button_dynamic->setMaximumSize(200, 50);
+    button_dynamic->setStyleSheet(style1.button_save_style1);
+
     QPushButton* button_chart2 = new QPushButton("audio imput");
     page2_widget2_layout->addWidget(button_chart2);
     button_chart2->setMaximumSize(200, 50);
@@ -316,14 +327,11 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     button_polarchart2->setMaximumSize(200, 50);
     button_polarchart2->setStyleSheet(style1.button_save_style1);
     //slot
-
     connect(button_filter, SIGNAL(clicked()), this, SLOT(drawcurve()));
-
-    connect(button_chart2, SIGNAL(clicked()), this, SLOT(drawcurve2()));
-
+    connect(button_dynamic, SIGNAL(clicked()), this, SLOT(draw_dynamic_curve()));
+    connect(button_chart2, SIGNAL(clicked()), this, SLOT(draw_audio_curve2()));
     connect(button_polarchart, SIGNAL(clicked()), this, SLOT(PolarChart()));
     connect(button_polarchart2, SIGNAL(clicked()), this, SLOT(PolarChart2()));
-
 
     ///page2_widget3
     QPushButton* button_fft = new QPushButton("FFT_1d");
@@ -370,10 +378,15 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     button_fft_show->setMaximumSize(200, 50);
     button_fft_show->setStyleSheet(style1.button_save_style1);
     ///page2_widget4
-    QPushButton* button_STFT = new QPushButton("STFT");
+    QPushButton* button_STFT = new QPushButton("Stock_well(ST)");
     page2_widget4_layout->addWidget(button_STFT);
     button_STFT->setMaximumSize(200, 50);
     button_STFT->setStyleSheet(style1.button_save_style1);
+
+    QPushButton* button_STFT2 = new QPushButton("STFT2");
+    page2_widget4_layout->addWidget(button_STFT2);
+    button_STFT2->setMaximumSize(200, 50);
+    button_STFT2->setStyleSheet(style1.button_save_style1);
 
     ///function connect
     connect(button_AGC, SIGNAL(clicked()), this, SLOT(dataArrayAGC()));
@@ -384,7 +397,9 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(button_fft_2d, SIGNAL(clicked()), this, SLOT(opencv_fft2d()));//一维傅里叶变换
     connect(button_fft_show, SIGNAL(clicked()), this, SLOT(chart_fftshow()));
     ///SF_function
-    connect(button_STFT, SIGNAL(clicked()), this, SLOT(SF_function()));
+    connect(button_STFT, SIGNAL(clicked()), this, SLOT(STOCK_function()));
+
+    //connect(button_STFT2, SIGNAL(clicked()), this, SLOT(myst()));
 
     ///page3显示表格
     QVBoxLayout* page3_layout = new QVBoxLayout(page3);
@@ -421,7 +436,6 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page4_layout->addWidget(data_3d_but1);
     //slot
     connect(data_3d_but1, SIGNAL(clicked()), this, SLOT(draw3DData()));
-
 }
 Qt_segy_process::~Qt_segy_process()
 {}
@@ -836,7 +850,7 @@ std::vector<std::vector<float>> Qt_segy_process::transposeMatrix(std::vector<std
 
     return transposed;
 }
-// 函数返回最小值或最大值
+// 函数返回二维向量最小值或最大值
 float  Qt_segy_process::findMinMaxValue(const std::vector<std::vector<float>>& matrix, int flag) {
     if (matrix.empty() || matrix[0].empty()) {
         std::cerr << "矩阵为空，无法找到最小和最大值。" << std::endl;
@@ -866,6 +880,45 @@ float  Qt_segy_process::findMinMaxValue(const std::vector<std::vector<float>>& m
 
     return result;
 }
+//double型返回一维
+double Qt_segy_process::findExtremeValue(const std::vector<double>& s, int flag) {
+    if (s.empty()) {
+        std::cerr << "Vector is empty." << std::endl;
+        return 0; // or throw an exception, depending on your requirements
+    }
+
+    double result = s[0]; // Initialize with the first element
+
+    for (int i = 1; i < s.size(); i++) {
+        if (flag == 1 && result > s[i]) {
+            result = s[i]; // Return minimum value
+        }
+        else if (flag == 2 && result < s[i]) {
+            result = s[i]; // Return maximum value
+        }
+    }
+
+    return result;
+}
+//float型
+float Qt_segy_process::findExtremeValue(const std::vector<float>& s, int flag) {
+    if (s.empty()) {
+        std::cerr << "Vector is empty." << std::endl;
+        // You might want to throw an exception or handle this case differently.
+        return 0.0f; // Default return value for float type
+    }
+    auto result = s[0]; // Initialize with the first element
+    for (int i = 1; i < s.size(); i++) {
+        if (flag == 1 && result > s[i]) {
+            result = s[i]; // Return minimum value
+        }
+        else if (flag == 2 && result < s[i]) {
+            result = s[i]; // Return maximum value
+        }
+    }
+
+    return result;
+}
 //dataarray2image
 cv::Mat Qt_segy_process::dataArray2image(std::vector<std::vector<float>> dataArray) {
     cv::Mat image_temp(dataArray.size(), dataArray[0].size(), CV_8U);//获取到二维数组的行和列；
@@ -873,7 +926,7 @@ cv::Mat Qt_segy_process::dataArray2image(std::vector<std::vector<float>> dataArr
     for (int i = 0; i < dataArray.size(); ++i) {
         for (int j = 0; j < dataArray[i].size(); ++j) {
             // 假设 dataArray 的元素是 [0, 1] 范围内的浮点数
-            image_temp.at<uchar>(i, j) = dataArray[i][j] * 256;
+            image_temp.at<uchar>(i, j) = dataArray[i][j] * 255;
         }
     }
     return image_temp;
@@ -1200,7 +1253,7 @@ void  Qt_segy_process::save_AGC_segy() {
 ///切除极小值，防止数据超出范围
 std::vector<std::vector<float>> Qt_segy_process::Exc_min(std::vector<std::vector<float>> matrix) 
 {
-    float cut_min = 1e-5;
+    float cut_min = 1e-10;
     for (int i = 0; i < matrix.size(); ++i)
     {
         for (int j = 0; j < matrix[i].size(); ++j)
@@ -2050,25 +2103,26 @@ void Qt_segy_process::draw3DData() {
     data_3d->show();
 }
 //S变换
-void Qt_segy_process::SF_function() {
-
+void Qt_segy_process::STOCK_function() {
+    
     if (dataArray.empty()) {//先判断数据是否初始化
-
         ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
         ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
         return;
     }
+    vector<std::vector<float>> data;
+    data = transposeMatrix(dataArray_real);
+
     vector<double> s;//存储单道数据空间
     // 生成时间序列 t
     vector<double> t;
 
-    int data_tracei = 80;
+    int data_tracei = 45;//道数
+    for (int i = 0; i < data.size(); i++) {//获取指定i的单道数据
 
-    for (int i = 0; i < dataArray.size(); i++) {//获取指定i的单道数据
-
-        s.push_back(dataArray[i][data_tracei]);//得到一维向量data
+        s.push_back(data[i][data_tracei]);//得到一维向量data
     }
-    double dt = 0.001;
+    double dt = 0.0005;//采样率500us
     int time_len = s.size();
     for (int i = 0; i < time_len; i++) {
         t.push_back(i * dt);
@@ -2076,103 +2130,166 @@ void Qt_segy_process::SF_function() {
     // 检查数据
     if (t.empty() || s.empty() || t.size() != s.size()) {
         cerr << "Error: Invalid input data." << endl;
-        return ; // 或者采取其他合适的处理方式
+        return; // 或者采取其他合适的处理方式
     }
-    for (double time : t) {
-        // 以正弦波为例，频率为10 Hz，振幅为1
-        double signal = sin(2 * M_PI * 10 * time);
-        s.push_back(signal);
-    }
+
     double freqlow = 1.0;
-    double freqhigh = 1000.0;
+    double freqhigh = 400.0;
     double alpha = 1.0;
-
     // 计算S变换
-    vector<vector<complex<double>>> data_s = st(t, s, freqlow, freqhigh, alpha);
+    vector<vector<complex<double>>> data_s = myst(t, s, freqlow, freqhigh, alpha);//计算出的是复数
 
-    // 获取第一个元素的实部
-    double realPart = data_s[0][0].real();
-
-    // 也可以遍历整个二维向量
-    for (const auto& row : data_s) {
-        for (const auto& elem : row) {
-            double elemReal = elem.real();
-            // 在这里使用 elemReal
-        }
-    }
-
-        // 遍历整个二维向量并打印实部
     std::vector<std::vector<float>> temp(data_s.size(), std::vector<float>(data_s[0].size()));
-
-    for (int i = 0; i < data_s.size(); ++i) {
-        for (int j = 0; j < data_s[i].size(); ++j) {
-            cout << "(" << data_s[i][j].real() << ", " << data_s[i][j].imag() << ") ";
-            
-            temp[i][j] = static_cast<float>(data_s[i][j].real());
+    
+    for (size_t i = 0; i < data_s.size(); ++i) {
+        for (size_t j = 0; j < data_s[i].size(); ++j) {
+            temp[i][j] = std::abs(data_s[i][j]);
         }
-        cout << endl;
     }
-    //temp = normalized(temp);
+    ///图片显示
+    temp = normalized(temp);
     src = dataArray2image(temp);
-    QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(temp.size()).arg(temp[0].size());
+    QString message = QString("stock_transform completed! fre %1 ; number %2;").arg(temp.size()).arg(temp[0].size());
+    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
     ui.statusBar->showMessage(message);
-
-
     QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);//灰度图
     label_picture->setPixmap(QPixmap::fromImage(qtImage2).scaled(label_picture->size()));
-    cv::namedWindow("AGC", cv::WINDOW_NORMAL);
-    cv::imshow("AGC", src); // 显示colorMap
+    cv::namedWindow("STOCKWELL_transform", cv::WINDOW_NORMAL);
+    cv::imshow("STOCKWELL_transform", src); // 显示colorMap
     waitKey(0);
     cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+    ///chart显示
+    QChart* chart_s_data = new QChart();
+    QWidget* widget_stockwell_fun = new QWidget();
 
-    
+    QChartView* chartView_stock = new QChartView();
 
-    //QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
-//ui.statusBar->showMessage(message);
-}
-std::vector<std::vector<std::complex<double>>> Qt_segy_process::st(const std::vector<double>& t, const std::vector<double>& s, double freqlow, double freqhigh, double alpha) {
-    ui.statusBar->setStyleSheet("background-color:red");
+    QVBoxLayout* layout_stock = new QVBoxLayout(widget_stockwell_fun);
 
-    int TimeLen = t.size();
-    double dt = t[1] - t[0];
-    int nLevel = static_cast<int>((freqhigh - freqlow) / alpha) + 1;
+    chartView_stock->setChart(chart_s_data);
+    QSplineSeries* series_stock = new QSplineSeries();//1
+    chart_s_data->addSeries(series_stock);//2
 
-    vector<vector<complex<double>>> wcoefs(nLevel, vector<complex<double>>(TimeLen, { 0.0, 0.0 }));
-
-    for (int m = 0; m < nLevel; ++m) {
-        double f = freqlow + m * alpha;
-        double sigma_f = 1.0 / f;
-
-        for (int n = 0; n < TimeLen; ++n) {
-            double Gauss_st = (1.0 / (sqrt(2 * M_PI) * sigma_f)) * exp(-0.5 * pow(n * dt - t[n], 2) / pow(sigma_f, 2)) * cos(2 * M_PI * f * t[n]);
-            wcoefs[m][n] = { 0.0, 0.0 };
-
-            for (int i = 0; i < TimeLen; ++i) {
-                wcoefs[m][n] += s[i] * Gauss_st * complex<double>(cos(2 * M_PI * f * t[i]), sin(2 * M_PI * f * t[i])) * dt;
-            }
-        }
+    for (int i = 0; i < s.size(); i++) {
+        series_stock->append(i, s[i]);
     }
+    //添加坐标轴
+    QValueAxis* axisX = new QValueAxis();
+    QValueAxis* axisY = new QValueAxis();
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+    axisX->setTitleText("sample");
+    axisY->setTitleText("Amp");
+    axisX->setTickCount(11);//设置刻度数量
+    axisY->setTickCount(11);
+    chart_s_data->addAxis(axisX, Qt::AlignBottom);//设置位置
+    chart_s_data->addAxis(axisY, Qt::AlignLeft);
+    series_stock->attachAxis(axisX);
+    series_stock->attachAxis(axisY);
 
+    chartView_stock->setChart(chart_s_data);
+
+    if (s.empty()) {
+        std::cout << "Vector is empty." << std::endl;
+        return;
+    }
+    double min = s[0];// Initialize min with the first element
+    double max = s[0]; // Initialize max with the first element
+    for (int i = 0; i < s.size(); i++) {
+        if (min > s[i]) {
+            min = s[i];
+        }
+        if (max < s[i]) {
+            max = s[i];
+        }
+    axisX->setRange(0, s.size());
+    axisY->setRange(min*2,max*2);
+    axisY->setLabelFormat("%.1f"); // 显示一位小数
+
+    chartView_stock->setRenderHint(QPainter::Antialiasing);
+    layout_stock->addWidget(chartView_stock);
+
+    widget_stockwell_fun->show();
+        //QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
+    //ui.statusBar->showMessage(message);
+    }
+}
+//linspace
+std::vector<double> linspace(double start, double end, int num) {//代替np.linsapce
+    std::vector<double> result(num);
+    double step = (end - start) / (num - 1);
+    std::iota(result.begin(), result.end(), start);
+    return result;
+}
+
+std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::vector<double> t, const std::vector<double> Sig,
+    double freqlow, double freqhigh, double alpha) {
+
+    // 检查输入参数并设置默认值
+    const double PI = 3.14159265358979323846;
+    // 计算频率数量
+    int nLevel = static_cast<int>((freqhigh - freqlow) / alpha) + 1;
+    // 时间和信号的长度
+    int TimeLen = t.size();
+    int SigLen = Sig.size();
+    double dt = t[1] - t[0];
+    // 产生频率范围
+    std::vector<double> fre;
+    for (int m = 0; m < nLevel; ++m) {
+        fre.push_back(freqlow + m * alpha);
+    }
+    // 分配计算结果的存储单元
+    std::vector<std::vector<std::complex<double>>> wcoefs;
+    std::vector<std::complex<double>> temp(TimeLen, std::complex<double>(0.0, 0.0));
+    // 循环计算
+    for (int m = 0; m < nLevel; ++m) {
+        // 提取频率参数
+        double f = fre[m];
+        // 计算高斯窗口宽度
+        double sigma_f = 1 / f;
+        std::vector<complex<double>> Gauss_st;
+        std::complex<double>  Gauss_st0;
+        std::vector<complex<double>> temp;
+        for (int n =0; n < TimeLen; ++n) {
+            // 计算高斯窗口
+            std::complex<double> temp0;
+            for (int k = 0; k < TimeLen; ++k) {//每个t点进行计算时间移动计算。
+
+                double exponent = -0.5 * pow((n * dt - t[k]), 2) / pow(sigma_f, 2);
+                double real_part = 1.0 / (sqrt(2 * PI) * sigma_f);
+                double imag_part = -2 * PI * f * t[k];
+                Gauss_st0 = std::polar(1.0, imag_part) * (real_part * exp(exponent));//n*dt固定，t[k]变化  
+                //qDebug() << Gauss_st0.real();//这一步计算正确，保持不动 
+                temp0 += (Sig[k] * Gauss_st0);
+            }
+            //qDebug() << temp0.real();//这一步计算正确，保持不动
+            temp.push_back(temp0*dt);
+            } 
+        /*for (int i = 0; i < 1; i++) {
+            qDebug() << temp[i].real();
+        }*/
+        wcoefs.push_back(temp);
+    }
     return wcoefs;
 }
+
+
 //绘制曲线
 void Qt_segy_process::drawcurve()
 {
     QChart *chart = new QChart();
-
     QChartView* chartview = new QChartView();
+    QSplineSeries* series = new QSplineSeries();//1
+    chart->addSeries(series);//2
 
-    QSplineSeries* series = new QSplineSeries();
-
-
-    for (int i = 0; i <= 100; i ++){ 
+    for (int i = 0; i <= 10; i ++){ 
         series->append(i, i*i); 
     }
-        
     //添加坐标轴
     QValueAxis* axisX = new QValueAxis();
     QValueAxis* axisY = new QValueAxis();
-
     QFont font;
     font.setPointSize(20);  // 设置字体大小
     axisX->setTitleFont(font);
@@ -2185,24 +2302,20 @@ void Qt_segy_process::drawcurve()
     chart->addAxis(axisY, Qt::AlignLeft);
     series->attachAxis(axisX);
     series->attachAxis(axisY);
-    chart->addSeries(series);
+    
     chartview->setChart(chart);
 
-    axisX->setRange(0, 100);
-    axisY->setRange(0, 100);
+    axisX->setRange(0, 10);
+    axisY->setRange(0, 10);
 
     chartview->setRenderHint(QPainter::Antialiasing);
-
     chartview->show();
 
 }
 
-void Qt_segy_process::drawcurve2() {
+void Qt_segy_process::draw_audio_curve2() {
    
-   /* QWidget* widget2 = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout();*/
-
-    const QAudioDevice inputDevice = QMediaDevices::defaultAudioInput();
+    const QAudioDevice inputDevice = QMediaDevices::defaultAudioInput();//检查设备是否可以使用
     if (inputDevice.isNull()) {
         QMessageBox::warning(nullptr, "audio",
             "There is no audio input device available.");
@@ -2211,87 +2324,118 @@ void Qt_segy_process::drawcurve2() {
     else {
         ui.statusBar->showMessage("ok");
     }
+    m_chart = new QChart();
+    m_series = new QSplineSeries();//1
+    m_chart->addSeries(m_series);//2
 
     QWidget* widget = new QWidget();
+    widget->setMinimumWidth(600);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    QChartView* chartview = new QChartView();
+    auto chartview = new QChartView(m_chart);
     chartview->setMinimumHeight(400);
     chartview->setStyleSheet("backgroung-color:black");
-    QChart* chart = new QChart();
-    QSplineSeries* series1 = new QSplineSeries();
     QTextEdit* textedit = new QTextEdit();
-    
+
     QString message = QString("inputDevice%1").arg(inputDevice.description());
     textedit->setText(message);
     textedit->setMaximumHeight(200);
     textedit->setStyleSheet("background-color:rgb(255,255,255);font-size:20px; ");
 
     layout->addWidget(chartview);
-    chartview->setChart(chart);
     layout->addWidget(textedit);
 
     //设置音频采样格式
     QAudioFormat formatAudio;
-    formatAudio.setSampleRate(20000);
+    formatAudio.setSampleRate(8000);
     formatAudio.setChannelCount(1);
     formatAudio.setSampleFormat(QAudioFormat::UInt8);
     //判断采样格式是否支持
     QAudioDevice info(QMediaDevices::defaultAudioOutput());
-    if (!info.isFormatSupported(formatAudio)) {
-        qWarning() << "Raw audio format not supported by backend, cannot play audio.";
-        return;
-    }
-    else {
-        ui.statusBar->showMessage(" format ok");
-    }
-    //设置音频源
-    audio = new QAudioSource(inputDevice, formatAudio, this);
-    
-    QBuffer audiodata;
+    //if (!info.isFormatSupported(formatAudio)) {
+    //    qWarning() << "Raw audio format not supported by backend, cannot play audio.";
+    //    ui.statusBar->showMessage(" format mistake! error!");
+    //    return;
+    //}
+    //else {
+    //    ui.statusBar->showMessage(" format ok");
+    //}
+    //// 创建坐标轴
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    auto axisX = new QValueAxis;
+    axisX->setTitleText("time"); // 设置坐标轴标签
+    axisX->setTitleFont(font);
+    axisX->setRange(0, XYSeriesIODevice::sampleCount);
+    auto axisY = new QValueAxis;
+    axisY->setTitleText("Audio level");
+    axisY->setTitleFont(font);
+    axisY->setRange(-0.5, 0.5);
+    m_chart->addAxis(axisX, Qt::AlignBottom);// 将坐标轴添加到 QChart 中
+    m_series->attachAxis(axisX);// 将系列关联到坐标轴
+    m_chart->addAxis(axisY, Qt::AlignLeft);
+    m_series->attachAxis(axisY);
+    m_chart->legend()->hide();
+    m_chart->setTitle("Data from the microphone(" + inputDevice.description() + ")");
 
-    audio->start();
-    QTimer::singleShot(3000, this, &Qt_segy_process::stopRecording);
+    m_chart->setTitleFont(font);
+    m_chart->createDefaultAxes();
+    m_chart->setTheme(QChart::ChartThemeLight);
+    //设置音频源
+    m_audioSource = new QAudioSource(inputDevice, formatAudio);
+    m_audioSource->setBufferSize(500);
+    //QTimer::singleShot(3000, this, &Qt_segy_process::stopRecording);//连接到记录时长
+    m_device = new XYSeriesIODevice(m_series);
+    m_device->open(QIODevice::WriteOnly);
+    m_audioSource->start(m_device);
     //
     // 此处需要存储audio数据
     //
-    //// 创建坐标轴
-    QValueAxis* axisX = new QValueAxis;
-    QValueAxis* axisY = new QValueAxis;
-
-    // 设置坐标轴标签
-    axisX->setTitleText("time");
-    axisY->setTitleText("Ampli");
-
-    QFont font;
-    font.setPointSize(20);  // 设置字体大小
-    axisX->setTitleFont(font);
-    axisY->setTitleFont(font);
-
-    // 将坐标轴添加到 QChart 中
-    chart->addAxis(axisX, Qt::AlignBottom);
-    chart->addAxis(axisY, Qt::AlignLeft);
-    axisX->setRange(0, 100);
-    axisY->setRange(0, 100);
-
-    // 将系列关联到坐标轴
-    series1->attachAxis(axisX);
-    series1->attachAxis(axisY);
-
-    chart->legend()->hide();
-    chart->setTitle("data from"+ inputDevice.description()+" ok");
-    chart->setTitleFont(font);
-    chart->createDefaultAxes();
-    chart->setTheme(QChart::ChartThemeLight);
-
-    chart->addSeries(series1);
     widget->show();
-}
-void Qt_segy_process::stopRecording()
-{
-    audio->stop();
 
-    delete audio;
-    ui.statusBar -> showMessage("stopRecording");
+}
+
+void Qt_segy_process::draw_dynamic_curve() {
+
+    QChartView *chartview=new QChartView();
+    QChart*chart=new QChart();
+    chartview->setChart(chart);
+    
+    axisX_dynamic=new QValueAxis();
+    axisY_dynamic = new QValueAxis();
+
+    axisX_dynamic->setTickCount(11);
+    axisX_dynamic->setRange(0, 10);
+    axisY_dynamic->setRange(-5, 20);
+
+    chart->addAxis(axisX_dynamic, Qt::AlignBottom);
+    chart->addAxis(axisY_dynamic, Qt::AlignLeft);
+
+    series_dynamic = new QSplineSeries();//1顺序很重要，切记
+    chart->addSeries(series_dynamic);//2
+    series_dynamic->attachAxis(axisX_dynamic);//3
+    series_dynamic->attachAxis(axisY_dynamic);
+    /*series_dynamic->append(0, 0);*/
+    QTimer* timer = new QTimer();
+    timer->start();
+    connect(timer, SIGNAL(timeout()), this, SLOT(Timeout_handler()));//已经链接起来
+    
+    timer->setInterval(100);
+    chartview->show();
+
+}
+void Qt_segy_process::Timeout_handler()
+{
+    QDateTime dt;
+    QString current_dt = dt.currentDateTime().toString("yyyy:MM:dd:hh:mm:ss:zzz");
+    int rand1 = QRandomGenerator::global()->bounded(0, 10);//产生随机数
+    
+    series_dynamic->append(x_index, rand1);
+
+    axisX_dynamic->setRange(0, x_index+10);
+    //axisY_dynamic->setRange(0, 10);
+    qDebug() << x_index << rand1;
+    ui.statusBar->showMessage(QString("x_index: %1  %2 %3").arg(x_index).arg(rand1).arg(current_dt));
+    x_index++;
 }
 
 
@@ -2497,6 +2641,118 @@ void Qt_segy_process::closeVersionInfo() {
 //ChartView_widget->setChart(chart);
 //
 //ChartView_widget->show();
+///Qchart绘图2
+//QChart* chart_s_data = new QChart();
+//QWidget* widget_stockwell_fun = new QWidget();
+//
+//QChartView* chartView_stock = new QChartView();
+//
+//QVBoxLayout* layout_stock = new QVBoxLayout(widget_stockwell_fun);
+//
+//chartView_stock->setChart(chart_s_data);
+//QSplineSeries* series_stock = new QSplineSeries();//1
+//chart_s_data->addSeries(series_stock);//2
+//
+//for (int i = 0; i < s.size(); i++) {
+//    series_stock->append(i, s[i]);
+//}
+////添加坐标轴
+//QValueAxis* axisX = new QValueAxis();
+//QValueAxis* axisY = new QValueAxis();
+//QFont font;
+//font.setPointSize(20);  // 设置字体大小
+//axisX->setTitleFont(font);
+//axisY->setTitleFont(font);
+//axisX->setTitleText("sample");
+//axisY->setTitleText("Amp");
+//axisX->setTickCount(11);//设置刻度数量
+//axisY->setTickCount(11);
+//chart_s_data->addAxis(axisX, Qt::AlignBottom);//设置位置
+//chart_s_data->addAxis(axisY, Qt::AlignLeft);
+//series_stock->attachAxis(axisX);
+//series_stock->attachAxis(axisY);
+//
+//chartView_stock->setChart(chart_s_data);
+//
+//if (s.empty()) {
+//    std::cout << "Vector is empty." << std::endl;
+//    return;
+//}
+//double min = s[0];// Initialize min with the first element
+//double max = s[0]; // Initialize max with the first element
+//for (int i = 0; i < s.size(); i++) {
+//    if (min > s[i]) {
+//        min = s[i];
+//    }
+//    if (max < s[i]) {
+//        max = s[i];
+//    }
+//    qDebug() << "min" << min;
+//    qDebug() << "max" << max;
+//    axisX->setRange(0, s.size());
+//    axisY->setRange(min * 2, max * 2);
+//    axisY->setLabelFormat("%.1f"); // 显示一位小数
+//
+//    chartView_stock->setRenderHint(QPainter::Antialiasing);
+//    layout_stock->addWidget(chartView_stock);
+//
+//    widget_stockwell_fun->show();
+///chart显示
+//QChart* chart_s_data = new QChart();
+//QWidget* widget_stockwell_fun = new QWidget();
+//
+//QChartView* chartView_stock = new QChartView();
+//
+//QVBoxLayout* layout_stock = new QVBoxLayout(widget_stockwell_fun);
+//
+//chartView_stock->setChart(chart_s_data);
+//QSplineSeries* series_stock = new QSplineSeries();//1
+//chart_s_data->addSeries(series_stock);//2
+//
+//for (int i = 0; i < s.size(); i++) {
+//    series_stock->append(i, s[i]);
+//}
+////添加坐标轴
+//QValueAxis* axisX = new QValueAxis();
+//QValueAxis* axisY = new QValueAxis();
+//QFont font;
+//font.setPointSize(20);  // 设置字体大小
+//axisX->setTitleFont(font);
+//axisY->setTitleFont(font);
+//axisX->setTitleText("sample");
+//axisY->setTitleText("Amp");
+//axisX->setTickCount(11);//设置刻度数量
+//axisY->setTickCount(11);
+//chart_s_data->addAxis(axisX, Qt::AlignBottom);//设置位置
+//chart_s_data->addAxis(axisY, Qt::AlignLeft);
+//series_stock->attachAxis(axisX);
+//series_stock->attachAxis(axisY);
+//
+//chartView_stock->setChart(chart_s_data);
+//
+//if (s.empty()) {
+//    std::cout << "Vector is empty." << std::endl;
+//    return;
+//}
+//double min = s[0];// Initialize min with the first element
+//double max = s[0]; // Initialize max with the first element
+//for (int i = 0; i < s.size(); i++) {
+//    if (min > s[i]) {
+//        min = s[i];
+//    }
+//    if (max < s[i]) {
+//        max = s[i];
+//    }
+//    qDebug() << "min" << min;
+//    qDebug() << "max" << max;
+//    axisX->setRange(0, s.size());
+//    axisY->setRange(min * 2, max * 2);
+//    axisY->setLabelFormat("%.1f"); // 显示一位小数
+//
+//    chartView_stock->setRenderHint(QPainter::Antialiasing);
+//    layout_stock->addWidget(chartView_stock);
+//
+//    widget_stockwell_fun->show();
 ///判断数据是否为空
 //if (dataArray_real.empty()) {//先判断数据是否初始化
 //
@@ -2606,3 +2862,20 @@ void Qt_segy_process::closeVersionInfo() {
 //chartview->setRenderHint(QPainter::Antialiasing);
 //
 //chartview->show();
+///找出一维向量最小值最大值
+//if (s.empty()) {
+//    std::cout << "Vector is empty." << std::endl;
+//    return;
+//}
+//double min = s[0];// Initialize min with the first element
+//double max = s[0]; // Initialize max with the first element
+//for (int i = 0; i < s.size(); i++) {
+//    if (min > s[i]) {
+//        min = s[i];
+//    }
+//    if (max < s[i]) {
+//        max = s[i];
+//    }
+//
+//    axisX->setRange(0, s.size());
+//    axisY->setRange(min, max);
