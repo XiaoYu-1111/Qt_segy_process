@@ -159,20 +159,34 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(Page3_button, SIGNAL(clicked()), this, SLOT(on_stackpage3_change_clicked()));// 切换到第三页
     connect(Page4_button, SIGNAL(clicked()), this, SLOT(on_stackpage4_change_clicked()));// 切换到第四页
     connect(Page5_button, SIGNAL(clicked()), this, SLOT(on_stackpage5_change_clicked()));
+    connect(Page5_button, SIGNAL(clicked()), this, SLOT(show_data2image()));
+    
 
     ///toolbar部分
     //part1
     QAction* myAction1 = new QAction("Main", this);//主动作行为
     // 创建下拉菜单并添加格子选项
-    QMenu* myMenu = new QMenu(this);
-    QAction* option1Action = new QAction("Option 1", this);
+    QMenu* myMenu = new QMenu(this);//一号菜单
+    QMenu* myMenu2 = new QMenu(this);//二号菜单
+    QAction* option1Action = new QAction("Open file", this);//一号菜单action
     myMenu->addAction(option1Action);
-    myMenu->addAction("Option 2");
-    myMenu->addAction("Option 3");
+
+    QAction* open_segy = new QAction("open_segy", this);//子菜单
+    QAction* show_data = new QAction("show data", this);//子菜单
+    QAction* open_csv_action = new QAction("open_csv", this);//子菜单
+    myMenu->addAction(show_data);//子菜单行为
+    myMenu->addAction("add");
+    myMenu2->addAction(open_segy);
+    myMenu2->addAction(open_csv_action);
     // 将下拉菜单关联到动作
     myAction1->setMenu(myMenu);
+    option1Action->setMenu(myMenu2);
     ui.mainToolBar->addAction(myAction1);
-    //part data change
+    ///part1slot
+    connect(open_segy, SIGNAL(triggered()), this, SLOT(open_segy()));
+    connect(show_data, SIGNAL(triggered()), this, SLOT(show_segy()));
+    connect(open_csv_action, SIGNAL(triggered()), this, SLOT(open_csv()));
+    //part data change//part2
     QAction* myAction_datachange = new QAction("Data", this);
     QMenu* datachange_menu = new QMenu(this);
     QAction* option1_agcdata2dataarray = new QAction("Agc2data", this);
@@ -194,7 +208,6 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ui.mainToolBar->addAction(myAction2);//添加进入口到toolbar
 
     ///toolbar部分solt
-
     connect(version_info, SIGNAL(triggered()), this, SLOT(show_version_info()));
     connect(option1_agcdata2dataarray, SIGNAL(triggered()), this, SLOT(agcdata2dataarray()));
     connect(option1_get_realdata, SIGNAL(triggered()), this, SLOT(get_orignal_real()));
@@ -427,10 +440,8 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(wiggle_button_H, SIGNAL(clicked()), this, SLOT(WiggleView_show_H()));
     connect(wiggle_button_V, SIGNAL(clicked()), this, SLOT(WiggleView_show_V()));
     connect(Save_Wiggle, SIGNAL(clicked()), this, SLOT(saveWiggle_1()));
-    
     //page4显示3D
     QVBoxLayout* page4_layout = new QVBoxLayout(page4);
-
     QPushButton* data_3d_but1 = new QPushButton("3D");
     data_3d_but1->setStyleSheet(style1.button_main);
     page4_layout->addWidget(data_3d_but1);
@@ -484,7 +495,7 @@ void Qt_segy_process::open_segy() {
     OpenFile_segy = QFileDialog::getOpenFileName(this,//openfile中存储的是图片地址;
         "please choose a file",
         "",
-        "data Files(*.segy *.png *.sgy );;All(*.*)");
+        "data Files(*.segy *.sgy );;All(*.*)");
 
     if (OpenFile_segy.isEmpty()) {
         qDebug() << "No file is selected!";
@@ -502,18 +513,15 @@ void Qt_segy_process::show_segy() {
 
     if (OpenFile_segy.isEmpty()) {
         qDebug() << "No file is selected!";
-
         ui.statusBar->showMessage(QString("no file selected! Please open a file first"));
         return;
     }
     dataArray = getsegyarray(filePath);
-
     dataArray_real = dataArray;//存储real_value
     dataArray = normalized(dataArray);
     dataArray = transposeMatrix(dataArray);
     // 创建一个 OpenCV 的 Mat 对象并将 dataArray 数据复制到其中
     //cv::Mat image(dataArray.size(), dataArray[0].size(), CV_8U);//获取到二维数组的行和列；
-
     //for (int i = 0; i < dataArray.size(); ++i) {
     //    for (int j = 0; j < dataArray[i].size(); ++j) {
     //        // 假设 dataArray 的元素是 [0, 1] 范围内的浮点数
@@ -671,8 +679,6 @@ void Qt_segy_process::save_segy_picture() {
 std::vector<std::vector<float>>  Qt_segy_process::getsegyarray(const std::string& inputfile) {
 
     std::ifstream filein;
-
-
     //std::string inputfile, outputfile;
     //inputfile = "D:\\Code\\visual_code\\Readsegy\\Readsegy\\data\\viking_new.segy";  // Input file path
     filein.open(inputfile, std::ios::binary);  // Open the input file
@@ -931,6 +937,46 @@ cv::Mat Qt_segy_process::dataArray2image(std::vector<std::vector<float>> dataArr
     }
     return image_temp;
     ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
+}
+//open_csv
+void Qt_segy_process::open_csv() {
+    qDebug() << "input data!";
+    ui.statusBar->showMessage(tr("Loading data!"), 5000);
+    //QString OpenFile;
+    OpenFile_csv = QFileDialog::getOpenFileName(this,//OpenFile_csv中存储的是路径;
+        "please choose a file",
+        "",
+        "data Files(*.csv );;All(*.*)");
+    if (OpenFile_csv.isEmpty()) {
+        qDebug() << "No file is selected!";
+        return;
+    }
+    ui.statusBar->showMessage(tr("Loading complet!"), 2000);
+    ui.statusBar->showMessage(QString("disk location:%1").arg(OpenFile_csv), 3000);
+    stylesheet_QT style2;
+    ui.statusBar->setStyleSheet(style2.styleSheet_bar);
+    std::ifstream file;
+    std::string filePath = OpenFile_csv.toStdString();//get file_path
+    file.open(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Error opening the file." << std::endl;
+        return ;
+    }
+    std::string line;
+    while (std::getline(file, line)) {
+        std::vector<float> row;
+        std::istringstream ss(line);
+        std::string cell;
+
+        while (std::getline(ss, cell, ',')) {
+            // Convert the cell value to double
+            float value = std::stod(cell);
+            row.push_back(value);
+        }
+       dataArray_csv.push_back(row);
+       ui.statusBar->showMessage(QString("csv data open sucessful").arg(OpenFile_csv), 3000);
+    }
+    file.close();
 }
 // 滑动窗口Function to calculate the root mean square (RMS) of a vector
 float Qt_segy_process::calculateRMS(const std::vector<std::vector<float>>& data, int row, int col, int windowSize) {
@@ -1294,7 +1340,6 @@ void Qt_segy_process::opencv_fft_1d() {
 
         data.push_back(dataarray_fft[i][data_tracei]);
     }
-
     cv::Mat Data = cv::Mat(data);//数据转换为mat格式
     cv::Mat planes1[] = { cv::Mat_<float>(Data), cv::Mat::zeros(Data.size(), CV_32F) };
     cv::Mat planes_true1 = cv::Mat_<float>(Data);
@@ -2104,7 +2149,21 @@ void Qt_segy_process::draw3DData() {
 }
 //S变换
 void Qt_segy_process::STOCK_function() {
-    
+    //建立显示窗口
+    widget_stockwell_fun = new QWidget();
+    QChartView* chartView_stock = new QChartView();
+    QChart* chart_s_data = new QChart();
+    QLabel* label_stack = new QLabel();
+    QSplineSeries* series_stock = new QSplineSeries();//1
+    chart_s_data->addSeries(series_stock);//2
+    QVBoxLayout* layout_stock = new QVBoxLayout(widget_stockwell_fun);
+    label_stack->setMinimumSize(600, 400);
+    layout_stock->addWidget(label_stack);
+
+    chartView_stock->setChart(chart_s_data);
+    chartView_stock->setMaximumHeight(400);
+    widget_stockwell_fun->show();
+
     if (dataArray.empty()) {//先判断数据是否初始化
         ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
         ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
@@ -2112,69 +2171,16 @@ void Qt_segy_process::STOCK_function() {
     }
     vector<std::vector<float>> data;
     data = transposeMatrix(dataArray_real);
-
     vector<double> s;//存储单道数据空间
-    // 生成时间序列 t
-    vector<double> t;
-
+    vector<double> t;// 存储生成时间序列 t
     int data_tracei = 45;//道数
     for (int i = 0; i < data.size(); i++) {//获取指定i的单道数据
-
         s.push_back(data[i][data_tracei]);//得到一维向量data
     }
-    double dt = 0.0005;//采样率500us
-    int time_len = s.size();
-    for (int i = 0; i < time_len; i++) {
-        t.push_back(i * dt);
-    }
-    // 检查数据
-    if (t.empty() || s.empty() || t.size() != s.size()) {
-        cerr << "Error: Invalid input data." << endl;
-        return; // 或者采取其他合适的处理方式
-    }
-
-    double freqlow = 1.0;
-    double freqhigh = 400.0;
-    double alpha = 1.0;
-    // 计算S变换
-    vector<vector<complex<double>>> data_s = myst(t, s, freqlow, freqhigh, alpha);//计算出的是复数
-
-    std::vector<std::vector<float>> temp(data_s.size(), std::vector<float>(data_s[0].size()));
-    
-    for (size_t i = 0; i < data_s.size(); ++i) {
-        for (size_t j = 0; j < data_s[i].size(); ++j) {
-            temp[i][j] = std::abs(data_s[i][j]);
-        }
-    }
-    ///图片显示
-    temp = normalized(temp);
-    src = dataArray2image(temp);
-    QString message = QString("stock_transform completed! fre %1 ; number %2;").arg(temp.size()).arg(temp[0].size());
-    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
-    ui.statusBar->showMessage(message);
-    QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);//灰度图
-    label_picture->setPixmap(QPixmap::fromImage(qtImage2).scaled(label_picture->size()));
-    cv::namedWindow("STOCKWELL_transform", cv::WINDOW_NORMAL);
-    cv::imshow("STOCKWELL_transform", src); // 显示colorMap
-    waitKey(0);
-    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
-    ///chart显示
-    QChart* chart_s_data = new QChart();
-    QWidget* widget_stockwell_fun = new QWidget();
-
-    QChartView* chartView_stock = new QChartView();
-
-    QVBoxLayout* layout_stock = new QVBoxLayout(widget_stockwell_fun);
-
-    chartView_stock->setChart(chart_s_data);
-    QSplineSeries* series_stock = new QSplineSeries();//1
-    chart_s_data->addSeries(series_stock);//2
-
-    for (int i = 0; i < s.size(); i++) {
+    for (int i = 0; i < s.size(); i++) {//添加道数据显示
         series_stock->append(i, s[i]);
     }
-    //添加坐标轴
-    QValueAxis* axisX = new QValueAxis();
+    QValueAxis* axisX = new QValueAxis();//添加坐标轴
     QValueAxis* axisY = new QValueAxis();
     QFont font;
     font.setPointSize(20);  // 设置字体大小
@@ -2188,7 +2194,6 @@ void Qt_segy_process::STOCK_function() {
     chart_s_data->addAxis(axisY, Qt::AlignLeft);
     series_stock->attachAxis(axisX);
     series_stock->attachAxis(axisY);
-
     chartView_stock->setChart(chart_s_data);
 
     if (s.empty()) {
@@ -2204,17 +2209,93 @@ void Qt_segy_process::STOCK_function() {
         if (max < s[i]) {
             max = s[i];
         }
+    }
     axisX->setRange(0, s.size());
-    axisY->setRange(min*2,max*2);
+    axisY->setRange(min * 2, max * 2);
     axisY->setLabelFormat("%.1f"); // 显示一位小数
-
+    QString chartTitle = QString("Trace Chart - Parameter %1").arg(data_tracei);
+    chart_s_data->setTitle(chartTitle);
+    chart_s_data->setTitleFont(font);
     chartView_stock->setRenderHint(QPainter::Antialiasing);
     layout_stock->addWidget(chartView_stock);
+    stack_save = new QPushButton("ST_save");
+    stack_close = new QPushButton("ST_close");
+    QWidget* widget_button = new QWidget();
+    QHBoxLayout* widget_button_layout = new QHBoxLayout(widget_button);
+    layout_stock->addWidget(widget_button);
+    widget_button_layout->addWidget(stack_save);
+    widget_button_layout->addWidget(stack_close);
+    stack_save->setMinimumSize(100, 30);
+    stack_save->setMaximumSize(200, 50);
+    stack_close->setMinimumSize(100, 30);
+    stack_close->setMaximumSize(200, 50);
+    stylesheet_QT style_button;
+    stack_save->setStyleSheet(style_button.stack_save);
+    stack_close->setStyleSheet(style_button.stack_save);
 
-    widget_stockwell_fun->show();
-        //QString message = QString("AGC completed! Trace simple %1 ;Trace number %2;").arg(dataarray_agc.size()).arg(dataarray_agc[0].size());
-    //ui.statusBar->showMessage(message);
+    ///计算参数
+    double dt = 0.0005;//采样率500us
+    int time_len = s.size();
+    for (int i = 0; i < time_len; i++) {
+        t.push_back(i * dt);
     }
+    // 检查数据
+    if (t.empty() || s.empty() || t.size() != s.size()) {
+        cerr << "Error: Invalid input data." << endl;
+        return; // 或者采取其他合适的处理方式
+    }
+    double freqlow = 1.0;
+    double freqhigh = 400.0;
+    double alpha = 1.0;
+    /// 计算S变换
+    vector<vector<complex<double>>> data_s = myst(t, s, freqlow, freqhigh, alpha);//计算出的是复数
+    std::vector<std::vector<float>> temp(data_s.size(), std::vector<float>(data_s[0].size()));//存储绝对值部分
+    for (size_t i = 0; i < data_s.size(); ++i) {
+        for (size_t j = 0; j < data_s[i].size(); ++j) {
+            temp[i][j] = std::abs(data_s[i][j]);
+        }
+    }
+    ///图片显示
+    temp = normalized(temp);
+    src = dataArray2image(temp);
+    QString message = QString("stock_transform completed! fre %1 ; number %2;").arg(temp.size()).arg(temp[0].size());
+    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    ui.statusBar->showMessage(message);
+    qtImage2= new QImage(src.data, src.cols, src.rows, src.step, QImage::Format_Grayscale8);//灰度图
+    label_picture->setPixmap(QPixmap::fromImage(*qtImage2).scaled(label_picture->size()));
+    //cv::namedWindow("STOCKWELL_transform", cv::WINDOW_NORMAL);
+    //cv::imshow("STOCKWELL_transform", src); // 显示colorMap
+    //waitKey(0);
+    //cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+    ///chart显示
+    label_stack->setMinimumSize(temp.size(), temp[0].size());
+    label_stack->setPixmap(QPixmap::fromImage(*qtImage2).scaled(label_stack->size()));
+    label_stack->setAlignment(Qt::AlignCenter);
+
+    ///slot
+    connect(stack_save, SIGNAL(clicked()), this, SLOT(save_stackimage()));//槽函数内部实现关闭;
+    connect(stack_close, SIGNAL(clicked()), this, SLOT(close_stackwindow()));
+}
+//存储stackwell结果
+void   Qt_segy_process::save_stackimage() {
+    // 显示保存对话框
+    QString filePath = QFileDialog::getSaveFileName(nullptr, "Save Image", "", "Images (*.png *.jpg)");
+
+    // 如果用户点击了保存按钮
+    if (!filePath.isEmpty()) {
+        // 保存QPixmap到用户选择的文件路径
+        if (qtImage2->save(filePath)) {
+            qDebug() << "Image saved successfully!";
+        }
+        else {
+            qDebug() << "Failed to save image!";
+        }
+    }
+}
+//关闭stackwell窗口
+void  Qt_segy_process::close_stackwindow() {
+    widget_stockwell_fun->close();
+    ui.statusBar->showMessage("stackwindow closed!");
 }
 //linspace
 std::vector<double> linspace(double start, double end, int num) {//代替np.linsapce
@@ -2226,7 +2307,18 @@ std::vector<double> linspace(double start, double end, int num) {//代替np.linsap
 
 std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::vector<double> t, const std::vector<double> Sig,
     double freqlow, double freqhigh, double alpha) {
-
+    //新建进度条
+ /*   QWidget* bar_widget = new QWidget();
+    bar_widget->setWindowTitle("STOCK_WELL process");
+    QVBoxLayout* bar_vlayout = new QVBoxLayout(bar_widget);
+    QProgressBar* progressBar = new QProgressBar(bar_widget);
+    progressBar->setFixedHeight(25);
+    progressBar->setMinimum(0);
+    progressBar->setMaximum(100);
+    bar_vlayout->addWidget(progressBar);
+    bar_widget->show();
+    progressBar->setValue(50);
+    progressBar->update();*/
     // 检查输入参数并设置默认值
     const double PI = 3.14159265358979323846;
     // 计算频率数量
@@ -2243,8 +2335,13 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::
     // 分配计算结果的存储单元
     std::vector<std::vector<std::complex<double>>> wcoefs;
     std::vector<std::complex<double>> temp(TimeLen, std::complex<double>(0.0, 0.0));
+
     // 循环计算
+    float tiem_progess;
     for (int m = 0; m < nLevel; ++m) {
+        tiem_progess = float(m) / float(nLevel) * 100;
+        
+        qDebug() << tiem_progess;//输出窗口显示处理进度
         // 提取频率参数
         double f = fre[m];
         // 计算高斯窗口宽度
@@ -2272,9 +2369,9 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::
         }*/
         wcoefs.push_back(temp);
     }
+    
     return wcoefs;
 }
-
 
 //绘制曲线
 void Qt_segy_process::drawcurve()
@@ -2415,14 +2512,14 @@ void Qt_segy_process::draw_dynamic_curve() {
     series_dynamic->attachAxis(axisX_dynamic);//3
     series_dynamic->attachAxis(axisY_dynamic);
     /*series_dynamic->append(0, 0);*/
-    QTimer* timer = new QTimer();
+    QTimer *timer = new QTimer(this);
     timer->start();
     connect(timer, SIGNAL(timeout()), this, SLOT(Timeout_handler()));//已经链接起来
     
     timer->setInterval(100);
     chartview->show();
-
 }
+
 void Qt_segy_process::Timeout_handler()
 {
     QDateTime dt;
@@ -2434,10 +2531,9 @@ void Qt_segy_process::Timeout_handler()
     axisX_dynamic->setRange(0, x_index+10);
     //axisY_dynamic->setRange(0, 10);
     qDebug() << x_index << rand1;
-    ui.statusBar->showMessage(QString("x_index: %1  %2 %3").arg(x_index).arg(rand1).arg(current_dt));
+    ui.statusBar->showMessage(QString("x_index: %1  %2 %3").arg(x_index).arg(rand1).arg(current_dt),3000);
     x_index++;
 }
-
 
 void Qt_segy_process::PolarChart() {
     const qreal angularMin = -100;
@@ -2537,6 +2633,41 @@ void Qt_segy_process::PolarChart2() {
     chartView->setChart(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->show();
+}
+
+
+void  Qt_segy_process::show_data2image() {//测试输出图像
+
+    if (dataArray_real.empty()) {//先判断数据是否初始化
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    QWidget* data2image = new QWidget();
+    QHBoxLayout* layput1 = new QHBoxLayout(data2image);
+    data2image->setMinimumSize(800, 600);
+    QLabel *label=new QLabel() ;
+    label->setMinimumSize(1200,800);
+    std::vector<std::vector<float>> temp;
+    temp = dataArray_real;//增益过后的数据,数据存储用
+    temp = normalized(temp);
+    temp = transposeMatrix(temp);
+    src = dataArray2image(temp);
+
+    QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);//灰度图
+    label->setPixmap(QPixmap::fromImage(qtImage2).scaled(label_picture->size()));
+
+    layput1->addWidget(label);
+
+    cv::namedWindow("dataArray_real", cv::WINDOW_NORMAL);
+    cv::imshow("dataArray_real", src); // 显示colorMap
+    waitKey(0);
+    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+
+    QString message = QString("dataArray_real! Trace simple %1 ;Trace number %2;").arg(dataArray_real.size()).arg(dataArray_real[0].size());
+    ui.statusBar->showMessage(message);
+    data2image->show();
+
 }
 //toolbar显示version
 void Qt_segy_process::show_version_info() {

@@ -4,6 +4,8 @@
 #include "ui_Qt_segy_process.h"
 
 #include <QMainWindow>
+#include <QtConcurrent>//处理多线程
+#include <QFutureWatcher>
 #include<QPushButton>
 #include<QLabel>
 #include<qfiledialog.h>
@@ -35,6 +37,7 @@
 #include <QGraphicsLineItem>
 #include <QDial>
 #include <QPainter>
+#include<QProgressBar>
 
 #include <QtDataVisualization>
 #include <vector>
@@ -88,6 +91,7 @@ public://公共成员segy
     QLabel* label_picture;
     QLabel* page3_label1;
     QString  OpenFile_segy;//打开路径
+    QString  OpenFile_csv;//打开路径
 
     QTextEdit* textEdit1;
 
@@ -97,6 +101,7 @@ public://公共成员segy
     std::vector<std::vector<float>> dataArray;// 原始得到的data
     std::vector<std::vector<float>> dataArray_real;// 真实数据
     std::vector<std::vector<float>> dataArray_save;// 最终数据
+    std::vector<std::vector<float>> dataArray_csv;// 最终数据
 
     std::vector<std::vector<float>> agc_save_data;//保存agc后的数据
     QSpinBox* windows_size_value;
@@ -135,9 +140,16 @@ public://公共成员segy
     QAudioInput* m_audioInput;
     QAudioSource* m_audioSource;
 
+    QWidget* widget_stockwell_fun;
+    QImage * qtImage2;
+    QPushButton* stack_save;//stockwell save
+    QPushButton* stack_close;
+
+
 public slots://segy数据槽函数
 
     void open_segy();
+    void open_csv();
     void show_segy();
     void save_segy();
     void save_segy_picture();
@@ -183,13 +195,16 @@ public slots://segy数据槽函数
     //3d
     void draw3DData();
     //S变换
-    std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
-        double freqlow, double freqhigh, double alpha);
 
     void STOCK_function();
+    std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
+        double freqlow, double freqhigh, double alpha);
+    void  close_stackwindow();
+    void  save_stackimage();
     //静态曲线
     void drawcurve();
     void draw_dynamic_curve();
+    
     void Timeout_handler();
     //sudio曲线
     void draw_audio_curve2();
@@ -197,6 +212,8 @@ public slots://segy数据槽函数
     //雷达图
     void PolarChart();
     void PolarChart2();
+
+    void show_data2image();
 
 public:
     QWidget* widget_info;//信息窗口

@@ -44,7 +44,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6.6.0_msvc2019_64</QtInstall>
     <QtBuildConfig>release</QtBuildConfig>
-    <QtModules>core;gui;widgets;multimedia;charts;datavisualization</QtModules>
+    <QtModules>core;gui;widgets;concurrent;multimedia;charts;datavisualization</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -65,12 +65,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <IncludePath>D:\QT\Qtcreater\6.6.0\msvc2019_64\include\QtMultimedia;D:\QT\Qtcreater\6.6.0\msvc2019_64\include\QtDataVisualization;D:\QT\Qtcreater\6.6.0\msvc2019_64\include\QtCharts;D:\QT\Qtcreater\6.6.0\msvc2019_64\include;$(IncludePath)</IncludePath>
+    <IncludePath>D:\QT\Qtcreater\6.6.0\msvc2019_64\include\QtConcurrent;D:\QT\Qtcreater\6.6.0\msvc2019_64\include\QtMultimedia;D:\QT\Qtcreater\6.6.0\msvc2019_64\include\QtDataVisualization;D:\QT\Qtcreater\6.6.0\msvc2019_64\include\QtCharts;D:\QT\Qtcreater\6.6.0\msvc2019_64\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\QT\Qtcreater\6.6.0\msvc2019_64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>Qt6Charts.lib;Qt63DCore.lib;Qt6DataVisualization.lib;Qt6Multimedia.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Qt6Charts.lib;Qt63DCore.lib;Qt6DataVisualization.lib;Qt6Multimedia.lib;Qt6Concurrent.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">

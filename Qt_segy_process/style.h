@@ -31,6 +31,10 @@ public:
                         QPushButton:hover{background-color: rgb(220, 227, 235);}
                         QPushButton:pressed{padding-top:5px;padding-left:5px;})";
 
+    QString stack_save = R"(QPushButton{font-size:15px;border-radius:8px;
+                        background-color: white;border: 2px solid rgb(0,0,0)}
+                        QPushButton:hover{background-color: rgb(220, 227, 235);}
+                        QPushButton:pressed{padding-top:5px;padding-left:5px;})";
     QString widget_gray1 = "background-color: rgb(150,150,150);border-radius:10px;";
 
     QString widget_gray2 = "background-color: rgb(200,200,200);border-radius:10px;";
