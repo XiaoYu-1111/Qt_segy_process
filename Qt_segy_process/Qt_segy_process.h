@@ -63,6 +63,7 @@ public:
     ~Qt_segy_process();
 
 public slots:
+    void main_page();
     void on_stackpage1_change_clicked();//页面跳转1
     void on_stackpage2_change_clicked();//页面跳转1
     void on_stackpage3_change_clicked();//页面跳转1
@@ -145,6 +146,11 @@ public://公共成员segy
     QPushButton* stack_save;//stockwell save
     QPushButton* stack_close;
 
+    int lowThreshold = 50;  // 默认低阈值
+    int highThreshold = 100; // 默认高阈值
+    QSlider* lowThresholdSlider;
+    QSlider* highThresholdSlider;
+
 
 public slots://segy数据槽函数
 
@@ -157,6 +163,7 @@ public slots://segy数据槽函数
     void save_AGC_segy();
 
     std::vector<std::vector<float>> getsegyarray(const std::string& inputfile);//read
+    std::vector<std::vector<float>>get_partsegyarray(int row,int col);//获取part_array
 
     float ibm2float(int x);
     int swap4byte(int value);
@@ -169,12 +176,12 @@ public slots://segy数据槽函数
     cv::Mat dataArray2image(std::vector<std::vector<float>> dataArray);
 
     float calculateRMS(const std::vector<std::vector<float>>& data, int row, int col, int windowSize);
-    
+    std::vector<float> calculate_energy(std::vector<std::vector<float>> matrix, int calculateFor);
     void trace_i_agc();//单道数据agc
     void dataArrayAGC();//AGC部分
     std::vector<std::vector<float>> Exc_min(std::vector<std::vector<float>> matrix);//切除极小值
-
     void opencv_fft_1d();//计算fft，opencv中自带
+    std::vector<std::vector<float>> opencv_fft_1d(std::vector<std::vector<float>> matrix, int tracei, int sampling);//计算fft，opencv中自带
     void opencv_fft2d();//多道数据fft
 
     void chart_fftshow();//测试chart
@@ -195,16 +202,19 @@ public slots://segy数据槽函数
     //3d
     void draw3DData();
     //S变换
-
     void STOCK_function();
     std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
         double freqlow, double freqhigh, double alpha);
     void  close_stackwindow();
     void  save_stackimage();
+    //page2_center
+    void filter_1d_widget();
+    void update_partsegydata();
+    void updateLowThreshold_row(int value);
+    void updateHighThreshold_col(int value);
     //静态曲线
     void drawcurve();
     void draw_dynamic_curve();
-    
     void Timeout_handler();
     //sudio曲线
     void draw_audio_curve2();

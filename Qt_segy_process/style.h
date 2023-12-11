@@ -43,6 +43,9 @@ public:
 
     QString label1 = "background-color:lightgreen;font-size:20px;border - radius:10px; ";
 
+    QString label_pink = "background-color:pink;font-size:20px;border - radius:10px; ";
+    QString label_orange = "background-color:orange;font-size:20px;border - radius:10px; ";
+
     QString  tooltip1 = "<html><font size='5' color='lightgreen'>MAIN PAGE</font></html>";
 
     QString  information_widget = "background-color: white;border-radius:10px; ";
