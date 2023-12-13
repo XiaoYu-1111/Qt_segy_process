@@ -320,7 +320,6 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     agc_trace_i->setStyleSheet("background-color:rgb(180,180,180)");
     page2_widget1_layout->addWidget(agc_trace_i);
 
-
     QPushButton* AGC_save = new QPushButton("AGC_save");
     AGC_save->setStyleSheet(style1.button_save_style1);
     AGC_save->setMaximumSize(200, 50);
@@ -440,8 +439,18 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     filter_1d->setStyleSheet(style1.button_save_style1);
     page2_center_widget1_layout->addWidget(filter_1d);
     page2_center_layout->addWidget(page2_center_widget1);
+    QWidget* page2_center_widget2 = new QWidget();
+    page2_center_widget2->setMaximumHeight(100);
+    QHBoxLayout* page2_center_widget2_layout = new QHBoxLayout(page2_center_widget2);
+    page2_center_widget2->setStyleSheet("background-color:rgb(100,100,100);");
+    QPushButton* DFT_custom_1d = new QPushButton("DFT_custom");//filter_1d按钮
+    DFT_custom_1d->setMaximumSize(200, 50);
+    DFT_custom_1d->setStyleSheet(style1.button_save_style1);
+    page2_center_widget2_layout->addWidget(DFT_custom_1d);
+    page2_center_layout->addWidget(page2_center_widget2);
     //slot
-    connect(filter_1d, SIGNAL(clicked()), this, SLOT(filter_1d_widget()));//一维傅里叶变换
+    connect(filter_1d, SIGNAL(clicked()), this, SLOT(filter_1d_widget()));//一维滤波
+    connect(DFT_custom_1d, SIGNAL(clicked()), this, SLOT(DFT_custom_1d_widget()));//一维DFT
     ///page2_right
     QLabel* page2_label_right = new QLabel("right splitter");
     page2_label_right->setMaximumSize(200, 50);
@@ -628,6 +637,7 @@ void Qt_segy_process::open_segy() {
     ui.statusBar->showMessage(QString("disk location:%1").arg(OpenFile_segy), 3000);
     stylesheet_QT style2;
     ui.statusBar->setStyleSheet(style2.styleSheet_bar);
+    
 }
 //show,先获取
 void Qt_segy_process::show_segy() {
@@ -693,8 +703,7 @@ void Qt_segy_process::show_segy() {
 
     stackedWidget1->setCurrentIndex(0);//显示图片呢，跳转到首页
     stylesheet_QT style2;
-    ui.statusBar->setStyleSheet(style2.styleSheet_bar);
-    
+    ui.statusBar->setStyleSheet(style2.styleSheet_bar); 
 }
 //save
 void  Qt_segy_process::save_segy() {
@@ -1081,6 +1090,95 @@ cv::Mat Qt_segy_process::dataArray2image(std::vector<std::vector<float>> dataArr
     return image_temp;
     ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
 }
+//二维数据直接转换为图像cv显示
+void Qt_segy_process::data2d2image(std::vector<std::vector<float>> dataArray) {
+    if (dataArray.empty())
+    {//先判断数据是否初始化
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    dataArray = normalized(dataArray);
+    dataArray = transposeMatrix(dataArray);
+    cv::Mat image_temp(dataArray.size(), dataArray[0].size(), CV_8U);//获取到二维数组的行和列；
+    for (int i = 0; i < dataArray.size(); ++i) {
+        for (int j = 0; j < dataArray[i].size(); ++j) {
+            // 假设 dataArray 的元素是 [0, 1] 范围内的浮点数
+            image_temp.at<uchar>(i, j) = dataArray[i][j] * 255;
+        }
+    }
+    cv::Mat colorMap;
+    applyColorMap(image_temp, colorMap, cv::COLORMAP_OCEAN); // 使用Jet颜色映射，你可以选择其他映射
+    /*COLORMAP_JET：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度。
+    COLORMAP_RAINBOW：彩虹颜色映射，用于表示连续数据的不同级别。
+    COLORMAP_HOT：Hot颜色映射，用于表示热度，通常用于温度数据。
+    COLORMAP_COOL：Cool颜色映射，用于表示温度，通常从冷到热的温度变化。
+    COLORMAP_SPRING：Spring颜色映射，用于表示温度或温度变化。
+    COLORMAP_SUMMER：Summer颜色映射，用于表示季节或温度。
+    COLORMAP_AUTUMN：Autumn颜色映射，用于表示季节或温度。
+    COLORMAP_WINTER：Winter颜色映射，用于表示季节或温度。
+    COLORMAP_OCEAN：Ocean颜色映射，通常用于表示海洋或水的深度。
+    COLORMAP_PINK：Pink颜色映射，通常用于表示连续数据的不同级别。
+    COLORMAP_HOT：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度*/
+    cv::namedWindow("Original", cv::WINDOW_NORMAL);
+    cv::imshow("Original", image_temp); // 显示原始图像
+    cv::namedWindow("colormap", cv::WINDOW_NORMAL);
+    cv::imshow("colormap", colorMap); // 显示原始图像
+    waitKey(0);
+    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+    ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
+}
+//data1d_2chartview封装
+void Qt_segy_process::data1d_2chartview(std::vector<float> data) {
+    if (data.empty())
+    {//先判断数据是否初始化
+    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+    return;
+    }
+    ///QChartView绘图
+    QChartView* ChartView_widget = new QChartView();
+    QChart* chart = new QChart();
+    QSplineSeries* series = new QSplineSeries();
+    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    for (size_t i = 0; i < data.size(); ++i) {
+        series->append(i, data[i]);
+    }
+    chart->addSeries(series);
+    // 创建坐标轴
+    QValueAxis* axisX = new QValueAxis;
+    QValueAxis* axisY = new QValueAxis;
+    // 设置坐标轴标签
+    axisX->setTitleText("X");
+    axisY->setTitleText("Y");
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+
+    // 计算数据的最大值
+    float maxDataValue = *std::max_element(data.begin(), data.end());
+    // 设置Y轴最大值为data数据最大值的1.2倍
+    axisY->setMax(maxDataValue * 1.2);
+    // 将坐标轴添加到 QChart 中
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // 将系列关联到坐标轴
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    chart->legend()->hide();
+    QString message = QString("series %1").arg(data.size());
+    
+    chart->setTitle(message);
+    chart->setTitleFont(font);
+    //chart->createDefaultAxes();
+    chart->setTheme(QChart::ChartThemeLight);
+    ChartView_widget->setChart(chart);
+    ChartView_widget->show();
+    return;
+}
 //open_csv
 void Qt_segy_process::open_csv() {
     qDebug() << "input data!";
@@ -1131,6 +1229,7 @@ float Qt_segy_process::calculateRMS(const std::vector<std::vector<float>>& data,
     }
     return std::sqrt(sum / (windowSize * windowSize));
 }
+//计算数据能量分布
 std::vector<float> Qt_segy_process::calculate_energy(std::vector<std::vector<float>> matrix,int calculateFor) {
 
     std::vector<float> temp;
@@ -1178,8 +1277,8 @@ std::vector<float> Qt_segy_process::calculate_energy(std::vector<std::vector<flo
     QValueAxis* axisX = new QValueAxis;
     QValueAxis* axisY = new QValueAxis;
     // 设置坐标轴标签
-    axisX->setTitleText("Freq");
-    axisY->setTitleText("Ampli");
+    axisX->setTitleText("series");
+    axisY->setTitleText("energy(**2)");
     QFont font;
     font.setPointSize(20);  // 设置字体大小
     axisX->setTitleFont(font);
@@ -1200,7 +1299,6 @@ std::vector<float> Qt_segy_process::calculate_energy(std::vector<std::vector<flo
     ChartView_widget->show();
     return temp;
 }
-
 //AGC//agc2d,滑动窗口计算能量
 void Qt_segy_process::dataArrayAGC() {//自适应增益控制
     ///判断 
@@ -1596,6 +1694,10 @@ void Qt_segy_process::opencv_fft_1d() {
     axisX->setTitleFont(font);
     axisY->setTitleFont(font);
     // 将坐标轴添加到 QChart 中
+    float maxDataValue = *std::max_element(Ampli.begin(), Ampli.end());
+
+    // 设置Y轴最大值为data数据最大值的1.2倍
+    axisY->setMax(maxDataValue * 1.2);
     chart->addAxis(axisX, Qt::AlignBottom);
     chart->addAxis(axisY, Qt::AlignLeft);
     // 将系列关联到坐标轴
@@ -1683,6 +1785,19 @@ std::vector<std::vector<float>> Qt_segy_process::opencv_fft_1d(std::vector<std::
     ChartView_widget->setChart(chart);
     ChartView_widget->show();
     return fft_return;
+}
+//手动计算离散傅里叶变换
+std::vector<std::complex<float>> Qt_segy_process::discrete_fourier_transform(const std::vector<float> x) {
+    int N = x.size();
+    std::vector<std::complex<float>> X(N, std::complex<float>(0.0f, 0.0f));//存储计算结果
+
+    for (int k = 0; k < N; ++k) {
+        for (int n = 0; n < N; ++n) {
+            X[k] += std::polar<float>(1.0, -2.0f * M_PI * k * n / N) * x[n];
+
+        }
+    } 
+    return X;
 }
 //计算二维数据的频谱并显示
 void Qt_segy_process::opencv_fft2d() {
@@ -2627,83 +2742,16 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::
     
     return wcoefs;
 }
-//page2_center_widget
-void Qt_segy_process::filter_1d_widget() {
-    if (dataArray_real.empty()) {
-        qDebug() << "data is empty. Make sure to load data first!";
-        ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
-        return ;//返回默认vector
-    }
-    QWidget* widget_1 = new QWidget();
-    stylesheet_QT style_info;
-    widget_1->setMinimumSize(600, 400);
-    widget_1->setStyleSheet(style_info.information_widget);
-    widget_1->setWindowTitle("filter1!");
-    QVBoxLayout* widget_1_layout = new QVBoxLayout(widget_1);
-    QLabel* info_label = new QLabel("widget_1");
-    info_label->setMaximumSize(100, 50);
-    info_label->setStyleSheet("color:rgb(0,0,128); font-size:30px; border-radius:50px; ");
-    widget_1_layout->addWidget(info_label);
-    //lowThresholdSlider = new QSlider(Qt::Horizontal); //可以运行但有bug，滑条移动太大会爆内存
-    //lowThresholdSlider->setRange(0, dataArray_real.size());
-    //lowThresholdSlider->setValue(lowThreshold);
-    //highThresholdSlider = new QSlider(Qt::Horizontal);
-    //highThresholdSlider->setRange(0, dataArray_real[0].size());
-    //highThresholdSlider->setValue(highThreshold);
-    //connect(lowThresholdSlider, SIGNAL(valueChanged(int)), this, SLOT(updateLowThreshold_row(int)));
-    //connect(highThresholdSlider, SIGNAL(valueChanged(int)), this, SLOT(updateHighThreshold_col(int)));
-    //widget_1_layout->addWidget(lowThresholdSlider);
-    //widget_1_layout->addWidget(highThresholdSlider);
-    widget_1->show();
-    /*QString message = QString("filter_1d widget! ");
-    ui.statusBar->showMessage(message,3000);*/
-    //test
-    opencv_fft_1d(dataArray_real, 20, 500);//测试opencv fft函数
-    calculate_energy(dataArray_real,0);
-    calculate_energy(dataArray_real,1);
-}
-//更新低值
-void Qt_segy_process::updateLowThreshold_row(int value) {
-    lowThreshold = value;
-    // 调用Canny边缘检测并更新显示
-    qDebug() << "Low Threshold: " << lowThreshold; // 添加调试输出
-    update_partsegydata();
-    ui.statusBar->showMessage(tr("updateCanny-LowThreshold!"), 1000);
-    ui.statusBar->showMessage("updateCanny->Low Threshold: " + QString::number(value), 2000);
-
-}
-//更新高值
-void Qt_segy_process::updateHighThreshold_col(int value) {
-    highThreshold = value;
-    // 调用Canny边缘检测并更新显示
-    qDebug() << "High Threshold: " << highThreshold; // 添加调试输出
-    update_partsegydata();
-    ui.statusBar->showMessage(tr("updateCanny-HighThreshold!"), 1000);
-    ui.statusBar->showMessage("updateCanny->High Threshold: " + QString::number(value), 2000);
-}
-//update更新函数
-void Qt_segy_process::update_partsegydata() {
-    std::vector<std::vector<float>> temp;
-    temp = get_partsegyarray(lowThreshold, highThreshold);
-    temp = normalized(temp);
-    src = dataArray2image(temp);
-    QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);//灰度图
-    label_picture->setPixmap(QPixmap::fromImage(qtImage2).scaled(label_picture->size()));
-    cv::namedWindow("part", cv::WINDOW_NORMAL);
-    cv::imshow("part", src); // 显示colorMap
-    waitKey(0);
-    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
-}
 //绘制曲线
 void Qt_segy_process::drawcurve()
 {
-    QChart *chart = new QChart();
+    QChart* chart = new QChart();
     QChartView* chartview = new QChartView();
     QSplineSeries* series = new QSplineSeries();//1
     chart->addSeries(series);//2
 
-    for (int i = 0; i <= 10; i ++){ 
-        series->append(i, i*i); 
+    for (int i = 0; i <= 10; i++) {
+        series->append(i, i * i);
     }
     //添加坐标轴
     QValueAxis* axisX = new QValueAxis();
@@ -2720,7 +2768,7 @@ void Qt_segy_process::drawcurve()
     chart->addAxis(axisY, Qt::AlignLeft);
     series->attachAxis(axisX);
     series->attachAxis(axisY);
-    
+
     chartview->setChart(chart);
 
     axisX->setRange(0, 10);
@@ -2731,7 +2779,7 @@ void Qt_segy_process::drawcurve()
 
 }
 void Qt_segy_process::draw_audio_curve2() {
-   
+
     const QAudioDevice inputDevice = QMediaDevices::defaultAudioInput();//检查设备是否可以使用
     if (inputDevice.isNull()) {
         QMessageBox::warning(nullptr, "audio",
@@ -2812,11 +2860,11 @@ void Qt_segy_process::draw_audio_curve2() {
 }
 void Qt_segy_process::draw_dynamic_curve() {
 
-    QChartView *chartview=new QChartView();
-    QChart*chart=new QChart();
+    QChartView* chartview = new QChartView();
+    QChart* chart = new QChart();
     chartview->setChart(chart);
-    
-    axisX_dynamic=new QValueAxis();
+
+    axisX_dynamic = new QValueAxis();
     axisY_dynamic = new QValueAxis();
 
     axisX_dynamic->setTickCount(11);
@@ -2831,10 +2879,10 @@ void Qt_segy_process::draw_dynamic_curve() {
     series_dynamic->attachAxis(axisX_dynamic);//3
     series_dynamic->attachAxis(axisY_dynamic);
     /*series_dynamic->append(0, 0);*/
-    QTimer *timer = new QTimer(this);
+    QTimer* timer = new QTimer(this);
     timer->start();
     connect(timer, SIGNAL(timeout()), this, SLOT(Timeout_handler()));//已经链接起来
-    
+
     timer->setInterval(100);
     chartview->show();
 }
@@ -2843,13 +2891,13 @@ void Qt_segy_process::Timeout_handler()
     QDateTime dt;
     QString current_dt = dt.currentDateTime().toString("yyyy:MM:dd:hh:mm:ss:zzz");
     int rand1 = QRandomGenerator::global()->bounded(0, 10);//产生随机数
-    
+
     series_dynamic->append(x_index, rand1);
 
-    axisX_dynamic->setRange(0, x_index+10);
+    axisX_dynamic->setRange(0, x_index + 10);
     //axisY_dynamic->setRange(0, 10);
     qDebug() << x_index << rand1;
-    ui.statusBar->showMessage(QString("time: %1  ").arg(current_dt),3000);
+    ui.statusBar->showMessage(QString("time: %1  ").arg(current_dt), 3000);
     x_index++;
 }
 void Qt_segy_process::PolarChart() {
@@ -2858,17 +2906,14 @@ void Qt_segy_process::PolarChart() {
 
     const qreal radialMin = -100;
     const qreal radialMax = 100;
-
     //数据
     QScatterSeries* series1 = new QScatterSeries();
     series1->setName("scatter");
     for (int i = angularMin; i <= angularMax; i += 10)
         series1->append(i, (i / radialMax) * radialMax + 8.0);
-
     //模型
     QPolarChart* chart = new QPolarChart();
     chart->addSeries(series1);
-
     //轴
     QValueAxis* angularAxis = new QValueAxis();
     angularAxis->setTickCount(9); // First and last ticks are co-located on 0/360 angle.
@@ -2876,28 +2921,22 @@ void Qt_segy_process::PolarChart() {
     angularAxis->setShadesVisible(true);
     angularAxis->setShadesBrush(QBrush(QColor(249, 249, 255)));
     chart->addAxis(angularAxis, QPolarChart::PolarOrientationAngular);
-
     QValueAxis* radialAxis = new QValueAxis();
     radialAxis->setTickCount(9);
     radialAxis->setLabelFormat("%d");
     chart->addAxis(radialAxis, QPolarChart::PolarOrientationRadial);
-
     series1->attachAxis(radialAxis);
     series1->attachAxis(angularAxis);
-
     radialAxis->setRange(radialMin, radialMax);
     angularAxis->setRange(angularMin, angularMax);
-
     QChartView* chartView = new QChartView();
-
     //最后加载到视图上
-
     chartView->setChart(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->show();
 }
 void Qt_segy_process::PolarChart2() {
-    
+
     //const qreal angularMin = -100;
     //const qreal angularMax = 100;
 
@@ -2905,7 +2944,7 @@ void Qt_segy_process::PolarChart2() {
     //const qreal radialMax = 100;
     //模型
     QPolarChart* chart = new QPolarChart();
-    
+
     //数据
     //QScatterSeries* series1 = new QScatterSeries();
     //series1->setName("scatter");
@@ -2921,7 +2960,7 @@ void Qt_segy_process::PolarChart2() {
     series4->setUpperSeries(series);
     series4->setPen(QPen(QColor(255, 150, 20, 0)));
     series4->setBrush(QColor(255, 150, 20, 60));
-    
+
     //chart->addSeries(series1);
     chart->addSeries(series);
     chart->addSeries(series4);
@@ -2961,8 +3000,8 @@ void  Qt_segy_process::show_data2image() {//测试输出图像
     QWidget* data2image = new QWidget();
     QHBoxLayout* layput1 = new QHBoxLayout(data2image);
     data2image->setMinimumSize(800, 600);
-    QLabel *label=new QLabel() ;
-    label->setMinimumSize(1200,800);
+    QLabel* label = new QLabel();
+    label->setMinimumSize(1200, 800);
     std::vector<std::vector<float>> temp;
     temp = dataArray_real;//增益过后的数据,数据存储用
     temp = normalized(temp);
@@ -2984,6 +3023,137 @@ void  Qt_segy_process::show_data2image() {//测试输出图像
     data2image->show();
 
 }
+///page2_center_widget_filter 包含测试部分test
+void Qt_segy_process::filter_1d_widget() {
+    if (dataArray_real.empty()) {
+        qDebug() << "data is empty. Make sure to load data first!";
+        ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
+        return ;//返回默认vector
+    }
+    QWidget* widget_1 = new QWidget();
+    stylesheet_QT style_info;
+    widget_1->setMinimumSize(600, 400);
+    widget_1->setStyleSheet(style_info.information_widget);
+    widget_1->setWindowTitle("filter1!");
+    QHBoxLayout* widget_1_layout = new QHBoxLayout(widget_1);
+    QLabel* info_label = new QLabel("widget_hello");
+    info_label->setMaximumSize(200, 50);
+    info_label->setAlignment(Qt::AlignCenter);
+    info_label->setStyleSheet("color:black;background-color:pink; font-size:20px; border-radius:50px; ");
+    widget_1_layout->addWidget(info_label);
+    //lowThresholdSlider = new QSlider(Qt::Horizontal); //可以运行但有bug，滑条移动太大会爆内存
+    //lowThresholdSlider->setRange(0, dataArray_real.size());
+    //lowThresholdSlider->setValue(lowThreshold);
+    //highThresholdSlider = new QSlider(Qt::Horizontal);
+    //highThresholdSlider->setRange(0, dataArray_real[0].size());
+    //highThresholdSlider->setValue(highThreshold);
+    //connect(lowThresholdSlider, SIGNAL(valueChanged(int)), this, SLOT(updateLowThreshold_row(int)));
+    //connect(highThresholdSlider, SIGNAL(valueChanged(int)), this, SLOT(updateHighThreshold_col(int)));
+    //widget_1_layout->addWidget(lowThresholdSlider);
+    //widget_1_layout->addWidget(highThresholdSlider);
+    widget_1->show();
+    /*QString message = QString("filter_1d widget! ");
+    ui.statusBar->showMessage(message,3000);*/
+    //test
+    opencv_fft_1d(dataArray_real, 20, 500);//测试opencv fft函数
+    calculate_energy(dataArray_real,0);
+    calculate_energy(dataArray_real,1);
+    ///测试绘图
+    vector<float> data;
+    for (int i = 0; i < 10; i++) {
+        data.push_back(std::pow(i,2));
+    }
+    data1d_2chartview(data);
+    data2d2image(dataArray_real);
+}
+//更新低值
+void Qt_segy_process::updateLowThreshold_row(int value) {
+    lowThreshold = value;
+    // 调用Canny边缘检测并更新显示
+    qDebug() << "Low Threshold: " << lowThreshold; // 添加调试输出
+    update_partsegydata();
+    ui.statusBar->showMessage(tr("updateCanny-LowThreshold!"), 1000);
+    ui.statusBar->showMessage("updateCanny->Low Threshold: " + QString::number(value), 2000);
+
+}
+//更新高值
+void Qt_segy_process::updateHighThreshold_col(int value) {
+    highThreshold = value;
+    // 调用Canny边缘检测并更新显示
+    qDebug() << "High Threshold: " << highThreshold; // 添加调试输出
+    update_partsegydata();
+    ui.statusBar->showMessage(tr("updateCanny-HighThreshold!"), 1000);
+    ui.statusBar->showMessage("updateCanny->High Threshold: " + QString::number(value), 2000);
+}
+//update更新函数
+void Qt_segy_process::update_partsegydata() {
+    std::vector<std::vector<float>> temp;
+    temp = get_partsegyarray(lowThreshold, highThreshold);
+    temp = normalized(temp);
+    src = dataArray2image(temp);
+    QImage qtImage2(src.data, src.cols, src.rows, src.step, QImage::Format_Alpha8);//灰度图
+    label_picture->setPixmap(QPixmap::fromImage(qtImage2).scaled(label_picture->size()));
+    cv::namedWindow("part", cv::WINDOW_NORMAL);
+    cv::imshow("part", src); // 显示colorMap
+    waitKey(0);
+    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+}
+
+//page2_center_widget
+void Qt_segy_process::DFT_custom_1d_widget() {
+    stylesheet_QT style_dft;
+    QWidget* widget_1 = new QWidget();
+    stylesheet_QT style_info;
+    widget_1->setMaximumSize(800, 600);
+    widget_1->setStyleSheet(style_info.information_widget);
+    widget_1->setWindowTitle("DFT_custom_1d!");
+    QVBoxLayout* widget_1_layout = new QVBoxLayout(widget_1);
+    QLabel* info_label = new QLabel("Hello! Welcom to DFT_custom_1d");
+    info_label->setMaximumSize(600, 50);
+    info_label->setAlignment(Qt::AlignCenter);
+    info_label->setStyleSheet(style_dft.label_pink);
+    dft_trace_i = new QSpinBox();//调节windows_size数值
+    dft_trace_i->setValue(20);//default value
+    dft_trace_i->setStyleSheet(style_dft.label_pink);
+    dft_trace_i->setFixedSize(200, 50);
+    dft_trace_i->setMinimum(0);
+    dft_trace_i->setMaximum(1000);
+    QPushButton* refresh = new QPushButton("Refresh");
+    refresh->setFixedSize(200, 50);
+    refresh->setStyleSheet(style_dft.button_main);
+
+    widget_1_layout->addWidget(info_label,0,Qt::AlignHCenter);
+    widget_1_layout->addWidget(dft_trace_i, 0, Qt::AlignHCenter);
+    widget_1_layout->addWidget(refresh, 0, Qt::AlignHCenter);
+    widget_1->show();
+    connect(refresh, SIGNAL(clicked()), this, SLOT(display_dft_chart_window()));
+
+}
+void Qt_segy_process::display_dft_chart_window() {
+    if (dataArray_real.empty()) {
+        qDebug() << "data is empty. Make sure to load data first!";
+        ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
+        return;//返回默认vector
+    }
+
+    std::vector<std::vector<float>>temp = dataArray_real;
+    temp = transposeMatrix(temp);//T
+    std::vector<float> trace_i_data;
+    std::vector<std::complex<float>> trace_i_data_dft_result;
+    std::vector<float> trace_i_data_dft_real;
+    for (int i = 0; i < temp.size(); i++) 
+    {//获取指定i的单道数据
+        trace_i_data.push_back(temp[i][dft_trace_i->value()]);//得到一维向量data
+    }
+    trace_i_data_dft_result = discrete_fourier_transform(trace_i_data);
+
+    for (int i = 0; i <= trace_i_data_dft_result.size()/2; i++) 
+    {
+        trace_i_data_dft_real.push_back(std::abs(trace_i_data_dft_result[i].real()));
+    }
+    data1d_2chartview(trace_i_data_dft_real);
+}
+
 //toolbar显示version
 void Qt_segy_process::show_version_info() {
 
@@ -3033,6 +3203,17 @@ void Qt_segy_process::show_version_info() {
 void Qt_segy_process::closeVersionInfo() {
     widget_info->close();
 }
+
+///完成封装
+//1.data1d_2chartview 一维数据转图表
+//2.data2d2image二维数据转图像
+///数据处理函数
+//getsegyarray获取segy数据
+//STStock变换计算时频谱
+//Exc_min切除极小值
+//opencvfft_1d
+//opencvfft_2d
+//discrete_fourier_transform离散傅里叶变换
 ///数据定义
 //std::vector<std::vector<float>> dataarray
 ///获取单道数据

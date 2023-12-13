@@ -151,6 +151,8 @@ public://公共成员segy
     QSlider* lowThresholdSlider;
     QSlider* highThresholdSlider;
 
+    QSpinBox* dft_trace_i;
+
 
 public slots://segy数据槽函数
 
@@ -174,13 +176,15 @@ public slots://segy数据槽函数
     double findExtremeValue(const std::vector<double>& s, int flag);
     float findExtremeValue(const std::vector<float>& s, int flag);//重载
     cv::Mat dataArray2image(std::vector<std::vector<float>> dataArray);
-
+    void data2d2image(std::vector<std::vector<float>> dataArray);
     float calculateRMS(const std::vector<std::vector<float>>& data, int row, int col, int windowSize);
     std::vector<float> calculate_energy(std::vector<std::vector<float>> matrix, int calculateFor);
     void trace_i_agc();//单道数据agc
     void dataArrayAGC();//AGC部分
     std::vector<std::vector<float>> Exc_min(std::vector<std::vector<float>> matrix);//切除极小值
     void opencv_fft_1d();//计算fft，opencv中自带
+
+    std::vector<std::complex<float>> discrete_fourier_transform(const std::vector<float> x);
     std::vector<std::vector<float>> opencv_fft_1d(std::vector<std::vector<float>> matrix, int tracei, int sampling);//计算fft，opencv中自带
     void opencv_fft2d();//多道数据fft
 
@@ -207,23 +211,27 @@ public slots://segy数据槽函数
         double freqlow, double freqhigh, double alpha);
     void  close_stackwindow();
     void  save_stackimage();
-    //page2_center
-    void filter_1d_widget();
-    void update_partsegydata();
-    void updateLowThreshold_row(int value);
-    void updateHighThreshold_col(int value);
     //静态曲线
     void drawcurve();
     void draw_dynamic_curve();
     void Timeout_handler();
-    //sudio曲线
+    //audio曲线
     void draw_audio_curve2();
-
     //雷达图
     void PolarChart();
     void PolarChart2();
 
     void show_data2image();
+    void data1d_2chartview(std::vector<float> data);
+
+    //page2_center
+    void filter_1d_widget();
+    void update_partsegydata();
+    void updateLowThreshold_row(int value);
+    void updateHighThreshold_col(int value);
+
+    void DFT_custom_1d_widget();
+    void display_dft_chart_window();
 
 public:
     QWidget* widget_info;//信息窗口
