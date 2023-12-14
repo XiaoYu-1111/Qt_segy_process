@@ -105,6 +105,7 @@ public://公共成员segy
     std::vector<std::vector<float>> dataArray_csv;// 最终数据
 
     std::vector<std::vector<float>> agc_save_data;//保存agc后的数据
+    std::vector<std::vector<float>> stocked_data;
     QSpinBox* windows_size_value;
     QSpinBox* agc_trace_i;
     QDoubleSpinBox* fft_sample_rate;//设置浮点数
@@ -152,6 +153,7 @@ public://公共成员segy
     QSlider* highThresholdSlider;
 
     QSpinBox* dft_trace_i;
+    std::vector<float> trace_i_data_dft_real;
 
 
 public slots://segy数据槽函数
@@ -209,6 +211,7 @@ public slots://segy数据槽函数
     void STOCK_function();
     std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
         double freqlow, double freqhigh, double alpha);
+    void  save_stacked_data();
     void  close_stackwindow();
     void  save_stackimage();
     //静态曲线
@@ -232,6 +235,9 @@ public slots://segy数据槽函数
 
     void DFT_custom_1d_widget();
     void display_dft_chart_window();
+    void save_trace_i_dft_real();
+    void save_1d_data(std::vector<float> data_1d);
+    void save_2d_data(std::vector<std::vector<float>> data_2d);
 
 public:
     QWidget* widget_info;//信息窗口

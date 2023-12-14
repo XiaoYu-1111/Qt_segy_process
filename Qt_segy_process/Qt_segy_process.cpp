@@ -5,6 +5,8 @@
 #include<QHBoxLayout>
 #include<QString>
 #include<QTextEdit>
+
+#include <iostream>
 #include <fstream>//header cpp std;
 #include <cstring>
 #include<cmath>
@@ -13,14 +15,8 @@
 #include <complex>
 #include <algorithm> 
 
-#include <iostream>
-#include <cmath>
-#include <complex>
-#include <vector>
-
 using namespace cv;
 using namespace std;
-
 
 Qt_segy_process::Qt_segy_process(QWidget *parent)
     : QMainWindow(parent), isWiggleViewCreated(false)
@@ -29,8 +25,8 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     this->setWindowTitle("QT-SEGY-processing software");
     
     stylesheet_QT style1;
-    ui.centralWidget->setStyleSheet(style1.widget_gray2);
-
+    ui.centralWidget->setStyleSheet(style1.widget_gray1);
+    ui.centralWidget->setMinimumSize(900,500);
     ui.statusBar->setMinimumHeight(30);
     ui.statusBar->setMaximumHeight(100);
     ui.mainToolBar->setMinimumHeight(30);
@@ -48,26 +44,26 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     main_layout->addWidget(main_right_Widget);
 
     main_left_Widget->setStyleSheet(style1.widget_gray1);
-    main_center_Widget->setStyleSheet(style1.widget_gray3);
+    main_center_Widget->setStyleSheet(style1.widget_gray1);
     main_right_Widget->setStyleSheet(style1.widget_gray1);
 
     main_left_Widget->setMinimumWidth(150);
     main_left_Widget->setMaximumWidth(200);
-
+    main_center_Widget->setMinimumWidth(400);
     main_right_Widget->setMinimumWidth(150);
     main_right_Widget->setMaximumWidth(200);
     //左侧窗口
-
     QVBoxLayout* left_layout = new QVBoxLayout(main_left_Widget);
 
 
     QLabel* main_label = new QLabel("SEGY-DATA");
-    QPushButton* main_button = new QPushButton("Main_button");
-
+    QPushButton* main_button = new QPushButton("MAIN");
+    main_button->setText(QString::fromLocal8Bit("主页面"));
+    
     left_layout->addWidget(main_label);
     left_layout->addWidget(main_button);
 
-    main_button->setStyleSheet(style1.button_save_style1);//main
+    main_button->setStyleSheet(style1.button_main);//main
     main_button->setToolTip("<html><font size='5' color='lightgreen'>MAIN PAGE</font></html>");
     main_button->setMinimumSize(80, 40);
     main_label->setAlignment(Qt::AlignCenter);
@@ -75,50 +71,58 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     main_label->setMaximumSize(200, 50);
 
     QPushButton* open_button = new QPushButton("open_file");//open
-    open_button->setStyleSheet(style1.button_save_style1);
+    open_button->setText(QString::fromLocal8Bit("打开文件"));
+    open_button->setStyleSheet(style1.button_main);
     open_button->setMinimumSize(80, 40);
     left_layout->addWidget(open_button);
 
     QPushButton* show_button = new QPushButton("show_data");//show
-    show_button->setStyleSheet(style1.button_save_style1);
+    show_button->setText(QString::fromLocal8Bit("显示"));
+    show_button->setStyleSheet(style1.button_main);
     show_button->setMinimumSize(80, 40);
     left_layout->addWidget(show_button);
 
     QPushButton* save_picture_button = new QPushButton("save_picture");//save
-    save_picture_button->setStyleSheet(style1.button_save_style1);
+    save_picture_button->setText(QString::fromLocal8Bit("保存图片"));
+    save_picture_button->setStyleSheet(style1.button_main);
     save_picture_button->setMinimumSize(80, 40);
     left_layout->addWidget(save_picture_button);
 
     QPushButton* save_button = new QPushButton("save_data");//save
-    save_button->setStyleSheet(style1.button_save_style1);
+    save_button->setText(QString::fromLocal8Bit("保存文件"));
+    save_button->setStyleSheet(style1.button_main);
     save_button->setMinimumSize(80, 40);
     left_layout->addWidget(save_button);
-
     //右侧窗口
     QVBoxLayout* right_layout = new QVBoxLayout(main_right_Widget);
 
     QPushButton* Page1_button = new QPushButton("page1_button");//open
-    Page1_button->setStyleSheet(style1.button_save_style1);
+    Page1_button->setText(QString::fromLocal8Bit("页面1"));
+    Page1_button->setStyleSheet(style1.button_main);
     Page1_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page1_button);
 
     QPushButton* Page2_button = new QPushButton("2D_process");//open
-    Page2_button->setStyleSheet(style1.button_save_style1);
+    Page2_button->setText(QString::fromLocal8Bit("2D处理"));
+    Page2_button->setStyleSheet(style1.button_main);
     Page2_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page2_button);
 
     QPushButton* Page3_button = new QPushButton("2D Page");//open
-    Page3_button->setStyleSheet(style1.button_save_style1);
+    Page3_button->setText(QString::fromLocal8Bit("2D显示"));
+    Page3_button->setStyleSheet(style1.button_main);
     Page3_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page3_button);
 
     QPushButton* Page4_button = new QPushButton("Page4");//open
-    Page4_button->setStyleSheet(style1.button_save_style1);
+    Page4_button->setText(QString::fromLocal8Bit("3D显示"));
+    Page4_button->setStyleSheet(style1.button_main);
     Page4_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page4_button);
 
     QPushButton* Page5_button = new QPushButton("page5");//open
-    Page5_button->setStyleSheet(style1.button_save_style1);
+    Page5_button->setText(QString::fromLocal8Bit("Tab页面"));
+    Page5_button->setStyleSheet(style1.button_main);
     Page5_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page5_button);
 
@@ -139,12 +143,11 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     stackedWidget1->addWidget(page3);
     stackedWidget1->addWidget(page4);
     stackedWidget1->addWidget(page5);
-    page1->setStyleSheet("background-color:rgb(255,255,255);border-radius:5px;");//21界面样式设置
-    page2->setStyleSheet("background-color:rgb(210,210,210);border-radius:5px;");//22界面样式设置
-    page3->setStyleSheet("background-color:rgb(220,220,220);border-radius:5px;");//23界面样式设置
-    page4->setStyleSheet("background-color:rgb(230,230,230);border-radius:5px;");//24界面样式设置
-    page5->setStyleSheet("background-color:rgb(240,240,240);border-radius:5px;");//25界面样式设置
-
+    page1->setStyleSheet(style1.widget_gray1);//21界面样式设置
+    page2->setStyleSheet(style1.widget_glass);//22界面样式设置
+    page3->setStyleSheet(style1.widget_glass);//23界面样式设置
+    page4->setStyleSheet(style1.widget_glass);//24界面样式设置
+    page5->setStyleSheet(style1.widget_glass);//25界面样式设置
 
     //主页面槽函数
     connect(open_button, SIGNAL(clicked()), this, SLOT(open_segy()));//打开文件
@@ -158,9 +161,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(Page3_button, SIGNAL(clicked()), this, SLOT(on_stackpage3_change_clicked()));// 切换到第三页
     connect(Page4_button, SIGNAL(clicked()), this, SLOT(on_stackpage4_change_clicked()));// 切换到第四页
     connect(Page5_button, SIGNAL(clicked()), this, SLOT(on_stackpage5_change_clicked()));
-    connect(Page5_button, SIGNAL(clicked()), this, SLOT(show_data2image()));
     
-
     ///toolbar部分
     //part1
     QAction* myAction1 = new QAction("Main", this);//主动作行为
@@ -196,7 +197,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     myAction_datachange->setMenu(datachange_menu);
 
     ui.mainToolBar->addAction(myAction_datachange);
-
+    ui.mainToolBar->setStyleSheet(style1.tool_bar);
     //part_version
     QAction* myAction2 = new QAction("version", this);//创建version页面入口
     QMenu* myMenu_version = new QMenu(this);//创建version菜单
@@ -204,36 +205,42 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     myMenu_version->addAction(version_info);
     myMenu_version->addAction("option_2");
     myAction2->setMenu(myMenu_version);
-    ui.mainToolBar->addAction(myAction2);//添加进入口到toolbar
-
+    ui.mainToolBar->addAction(myAction2);//添加到toolbar
     ///toolbar部分solt
     connect(version_info, SIGNAL(triggered()), this, SLOT(show_version_info()));
     connect(option1_agcdata2dataarray, SIGNAL(triggered()), this, SLOT(agcdata2dataarray()));
     connect(option1_get_realdata, SIGNAL(triggered()), this, SLOT(get_orignal_real()));
-
+    ///statusbar
+    ui.statusBar->setStyleSheet(style1.styleSheet_bar);
     ///page1
     QVBoxLayout* page1_layout = new QVBoxLayout(page1);
     label_picture = new QLabel;
+    page1->setStyleSheet(style1.widget_gray1);
     // 加载图片并设置为 QLabel 的背景
-    QString  path="D:\\Code\\visual_code\\Open_Cv\\Qt_segy_process\\Qt_segy_process\\icon\\shuidi.jpg";  // 替换为你的图片路径
-    label_picture->setMinimumSize(600, 400);
-    Mat src = cv::imread(path.toStdString());
-    QImage qtImage(src.data, src.cols, src.rows, src.step, QImage::Format_BGR888);
-    label_picture->setPixmap(QPixmap::fromImage(qtImage).scaled(label_picture->size()));
+    //QString  path="D:\\Code\\visual_code\\Open_Cv\\Qt_segy_process\\Qt_segy_process\\icon\\shuidi.jpg";  // 替换为你的图片路径
+    //label_picture->setMinimumSize(600, 400);
+    //Mat src = cv::imread(path.toStdString());
+    //QImage qtImage(src.data, src.cols, src.rows, src.step, QImage::Format_BGR888);
+    //label_picture->setPixmap(QPixmap::fromImage(qtImage).scaled(label_picture->size()));
+    QString widget_gray1 = "Seis Data\n Processing\n";
+    label_picture->setStyleSheet(style1.label_main);
+    label_picture->setText(widget_gray1);
+    label_picture->setMinimumSize(400, 300);
     label_picture->setAlignment(Qt::AlignCenter);
     page1_layout->addWidget(label_picture);
+    ///第一页面下边窗口
     QWidget* page1_widget1 = new QWidget();
-    QHBoxLayout* page1_widget1_layout = new QHBoxLayout(page1_widget1);///第一页面下边窗口
+    QHBoxLayout* page1_widget1_layout = new QHBoxLayout(page1_widget1);
     page1_layout->addWidget(page1_widget1);
-    page1_widget1->setStyleSheet("background-color:rgb(200,200,200)");
+    page1_widget1->setStyleSheet(style1.widget_glass);
     page1_widget1->setMaximumHeight(100);
     textEdit1 = new QTextEdit();///放置信息
     textEdit1->setReadOnly(true);
-    textEdit1->setStyleSheet("background-color:rgb(255,255,255);font-size:20px; ");
+    textEdit1->setStyleSheet(style1.textEdit);
     page1_widget1_layout->addWidget(textEdit1);
     textEdit1->setPlainText("version_1.0,author by rain!");
-
-    ///page2
+    ///page2**************
+    ///page2**************
     QVBoxLayout* page2_layout = new QVBoxLayout(page2);
     QSplitter* splitter_page2 = new QSplitter(Qt::Horizontal);
     page2_layout->addWidget(splitter_page2);
@@ -246,9 +253,9 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     QWidget* page2_right = new QWidget();
     QVBoxLayout* page2_right_layout = new QVBoxLayout(page2_right);//右边splitter
     //page2_right->setMinimumWidth(200);
-    page2_left->setStyleSheet("background-color: rgb(150,150,160)");
-    page2_center->setStyleSheet("background-color: rgb(150,150,150)");
-    page2_right->setStyleSheet("background-color: rgb(160,150,150)");
+    page2_left->setStyleSheet(style1.widget_gray1);
+    page2_center->setStyleSheet(style1.widget_gray1);
+    page2_right->setStyleSheet(style1.widget_gray1);
 
     splitter_page2->addWidget(page2_left);
     splitter_page2->addWidget(page2_center);
@@ -268,7 +275,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
 
     QLabel* page2_label_left = new QLabel("left splitter");
     page2_label_left->setMaximumSize(200, 50);
-    page2_label_left->setStyleSheet(style1.label_pink);
+    page2_label_left->setStyleSheet(style1.label1);
     page2_label_left->setAlignment(Qt::AlignCenter);
     page2_left_layout->addWidget(page2_label_left);
 
@@ -277,24 +284,24 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_left_layout->addWidget(page2_widget2);
     page2_left_layout->addWidget(page2_widget4);
 
-    page2_widget1->setStyleSheet("background-color:rgb(100,100,100);");
-    page2_widget2->setStyleSheet("background-color:rgb(100,100,100);");
-    page2_widget3->setStyleSheet("background-color:rgb(100,100,100);");
-    page2_widget4->setStyleSheet("background-color:rgb(100,100,100);");
+    page2_widget1->setStyleSheet(style1.widget_gray1);
+    page2_widget2->setStyleSheet(style1.widget_gray1);
+    page2_widget3->setStyleSheet(style1.widget_gray1);
+    page2_widget4->setStyleSheet(style1.widget_gray1);
     ///page2_widget1
     QPushButton* button_AGC = new QPushButton("AGC_2D");
-    button_AGC->setStyleSheet(style1.button_save_style1);
+    button_AGC->setStyleSheet(style1.button_15px);
     button_AGC->setMaximumSize(100, 50);
     page2_widget1_layout->addWidget(button_AGC);
 
     QPushButton* AGC_single = new QPushButton("AGC_tracei");
-    AGC_single->setStyleSheet(style1.button_save_style1);
+    AGC_single->setStyleSheet(style1.button_15px);
     AGC_single->setMaximumSize(100, 50);
     page2_widget1_layout->addWidget(AGC_single);
 
     QLabel* windows_size = new QLabel("windows_size");
     windows_size->setMaximumSize(100, 50);
-    windows_size->setStyleSheet("background-color:lightgreen");
+    windows_size->setStyleSheet(style1.label1);
     page2_widget1_layout->addWidget(windows_size);
 
     windows_size_value = new QSpinBox();//调节windows_size数值
@@ -303,12 +310,12 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     windows_size_value->setMaximum(dataArray.size());*/
     windows_size_value->setMaximumWidth(100);
     windows_size_value->setMaximumHeight(50);
-    windows_size_value->setStyleSheet("background-color:rgb(180,180,180)");
+    windows_size_value->setStyleSheet(style1.label1);
     page2_widget1_layout->addWidget(windows_size_value);
 
     QLabel* label_trace_i = new QLabel("trace i");///分割标签
     label_trace_i->setMaximumSize(100, 50);
-    label_trace_i->setStyleSheet("background-color:lightgreen");
+    label_trace_i->setStyleSheet(style1.label1);
     page2_widget1_layout->addWidget(label_trace_i);
 
     agc_trace_i = new QSpinBox();//调节windows_size数值
@@ -317,11 +324,11 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     windows_size_value->setMaximum(dataArray.size());*/
     agc_trace_i->setMaximumWidth(100);
     agc_trace_i->setMaximumHeight(50);
-    agc_trace_i->setStyleSheet("background-color:rgb(180,180,180)");
+    agc_trace_i->setStyleSheet(style1.label1);
     page2_widget1_layout->addWidget(agc_trace_i);
 
     QPushButton* AGC_save = new QPushButton("AGC_save");
-    AGC_save->setStyleSheet(style1.button_save_style1);
+    AGC_save->setStyleSheet(style1.button_15px);
     AGC_save->setMaximumSize(200, 50);
     page2_widget1_layout->addWidget(AGC_save);
 
@@ -329,48 +336,47 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     QPushButton* button_filter = new QPushButton("filter");
     page2_widget2_layout->addWidget(button_filter);
     button_filter->setMaximumSize(200, 50);
-    button_filter->setStyleSheet(style1.button_save_style1);
+    button_filter->setStyleSheet(style1.button_15px);
 
     QPushButton* button_dynamic = new QPushButton("dynamic");
     page2_widget2_layout->addWidget(button_dynamic);
     button_dynamic->setMaximumSize(200, 50);
-    button_dynamic->setStyleSheet(style1.button_save_style1);
+    button_dynamic->setStyleSheet(style1.button_15px);
 
     QPushButton* button_chart2 = new QPushButton("audio imput");
     page2_widget2_layout->addWidget(button_chart2);
     button_chart2->setMaximumSize(200, 50);
-    button_chart2->setStyleSheet(style1.button_save_style1);
+    button_chart2->setStyleSheet(style1.button_15px);
 
     QPushButton* button_polarchart = new QPushButton("polarchart");
     page2_widget2_layout->addWidget(button_polarchart);
     button_polarchart->setMaximumSize(200, 50);
-    button_polarchart->setStyleSheet(style1.button_save_style1);
+    button_polarchart->setStyleSheet(style1.button_15px);
 
     QPushButton* button_polarchart2 = new QPushButton("polarchart2");
     page2_widget2_layout->addWidget(button_polarchart2);
     button_polarchart2->setMaximumSize(200, 50);
-    button_polarchart2->setStyleSheet(style1.button_save_style1);
+    button_polarchart2->setStyleSheet(style1.button_15px);
     //slot
     connect(button_filter, SIGNAL(clicked()), this, SLOT(drawcurve()));
     connect(button_dynamic, SIGNAL(clicked()), this, SLOT(draw_dynamic_curve()));
     connect(button_chart2, SIGNAL(clicked()), this, SLOT(draw_audio_curve2()));
     connect(button_polarchart, SIGNAL(clicked()), this, SLOT(PolarChart()));
     connect(button_polarchart2, SIGNAL(clicked()), this, SLOT(PolarChart2()));
-
     ///page2_widget3
     QPushButton* button_fft = new QPushButton("FFT_1d");
     page2_widget3_layout->addWidget(button_fft);
     button_fft->setMaximumSize(200, 50);
-    button_fft->setStyleSheet(style1.button_save_style1);
+    button_fft->setStyleSheet(style1.button_15px);
 
     QPushButton* button_fft_2d = new QPushButton("FFT_2d");
     page2_widget3_layout->addWidget(button_fft_2d);
     button_fft_2d->setMaximumSize(200, 50);
-    button_fft_2d->setStyleSheet(style1.button_save_style1);
+    button_fft_2d->setStyleSheet(style1.button_15px);
 
     QLabel* label_sample_rate = new QLabel("sample_rate");///分割标签
     label_sample_rate->setMaximumSize(100, 50);
-    label_sample_rate->setStyleSheet("background-color:lightgreen");
+    label_sample_rate->setStyleSheet(style1.label1);
     page2_widget3_layout->addWidget(label_sample_rate);
 
     fft_sample_rate = new QDoubleSpinBox();//调节fft_sample_rate数值
@@ -380,12 +386,12 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     /*fft_sample_rate->setMaximum(1000);*/
     fft_sample_rate->setMaximumWidth(200);
     fft_sample_rate->setMaximumHeight(50);
-    fft_sample_rate->setStyleSheet("background-color:rgb(180,180,180)");
+    fft_sample_rate->setStyleSheet(style1.label1);
     page2_widget3_layout->addWidget(fft_sample_rate);
 
     QLabel* label_tracei2 = new QLabel("trace i");///分割标签
     label_tracei2->setMaximumSize(100, 50);
-    label_tracei2->setStyleSheet("background-color:lightgreen");
+    label_tracei2->setStyleSheet(style1.label1);
     page2_widget3_layout->addWidget(label_tracei2);
 
     data_trace_i = new QSpinBox();//调节data_trace_i数值
@@ -394,23 +400,23 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     /*data_trace_i->setValue(500);*/
     data_trace_i->setMaximumWidth(200);
     data_trace_i->setMaximumHeight(50);
-    data_trace_i->setStyleSheet("background-color:rgb(200,200,200)");
+    data_trace_i->setStyleSheet(style1.label1);
     page2_widget3_layout->addWidget(data_trace_i);
 
     QPushButton* button_fft_show = new QPushButton("FFT_show");
     page2_widget3_layout->addWidget(button_fft_show);
     button_fft_show->setMaximumSize(200, 50);
-    button_fft_show->setStyleSheet(style1.button_save_style1);
+    button_fft_show->setStyleSheet(style1.button_15px);
     ///page2_widget4
     QPushButton* button_STFT = new QPushButton("Stock_well(ST)");
     page2_widget4_layout->addWidget(button_STFT);
     button_STFT->setMaximumSize(200, 50);
-    button_STFT->setStyleSheet(style1.button_save_style1);
+    button_STFT->setStyleSheet(style1.button_15px);
 
     QPushButton* button_STFT2 = new QPushButton("STFT2");
     page2_widget4_layout->addWidget(button_STFT2);
     button_STFT2->setMaximumSize(200, 50);
-    button_STFT2->setStyleSheet(style1.button_save_style1);
+    button_STFT2->setStyleSheet(style1.button_15px);
 
     ///function connect
     connect(button_AGC, SIGNAL(clicked()), this, SLOT(dataArrayAGC()));
@@ -426,26 +432,26 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ///page2_center
     QLabel* page2_label_center = new QLabel("center splitter");
     page2_label_center->setMaximumSize(200, 50);
-    page2_label_center->setStyleSheet(style1.label_pink);
+    page2_label_center->setStyleSheet(style1.label1);
     page2_label_center->setAlignment(Qt::AlignCenter);
     page2_center_layout->addWidget(page2_label_center);
 
     QWidget* page2_center_widget1 = new QWidget();
     page2_center_widget1->setMaximumHeight(100);
     QHBoxLayout* page2_center_widget1_layout = new QHBoxLayout(page2_center_widget1);
-    page2_center_widget1 -> setStyleSheet("background-color:rgb(100,100,100);");
+    page2_center_widget1 -> setStyleSheet(style1.widget_gray1);
     QPushButton* filter_1d = new QPushButton("filter_1d");//filter_1d按钮
     filter_1d->setMaximumSize(200, 50);
-    filter_1d->setStyleSheet(style1.button_save_style1);
+    filter_1d->setStyleSheet(style1.button_main);
     page2_center_widget1_layout->addWidget(filter_1d);
     page2_center_layout->addWidget(page2_center_widget1);
     QWidget* page2_center_widget2 = new QWidget();
     page2_center_widget2->setMaximumHeight(100);
     QHBoxLayout* page2_center_widget2_layout = new QHBoxLayout(page2_center_widget2);
-    page2_center_widget2->setStyleSheet("background-color:rgb(100,100,100);");
+    page2_center_widget2->setStyleSheet(style1.widget_gray1);
     QPushButton* DFT_custom_1d = new QPushButton("DFT_custom");//filter_1d按钮
     DFT_custom_1d->setMaximumSize(200, 50);
-    DFT_custom_1d->setStyleSheet(style1.button_save_style1);
+    DFT_custom_1d->setStyleSheet(style1.button_main);
     page2_center_widget2_layout->addWidget(DFT_custom_1d);
     page2_center_layout->addWidget(page2_center_widget2);
     //slot
@@ -454,11 +460,11 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ///page2_right
     QLabel* page2_label_right = new QLabel("right splitter");
     page2_label_right->setMaximumSize(200, 50);
-    page2_label_right->setStyleSheet(style1.label_pink);
+    page2_label_right->setStyleSheet(style1.label1);
     page2_label_right->setAlignment(Qt::AlignCenter);
     page2_right_layout->addWidget(page2_label_right);
-
-    ///page3
+    ///page3********
+    ///page3********
     QHBoxLayout* page3_layout = new QHBoxLayout(page3);
     QSplitter* splitter_page3 = new QSplitter(Qt::Horizontal);
 
@@ -474,13 +480,13 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     splitter_page3->addWidget(page3_left);
     splitter_page3->addWidget(page3_center);
     splitter_page3->addWidget(page3_right);
-    page3_left->setStyleSheet("background-color: rgb(150,150,160)");
-    page3_center->setStyleSheet("background-color: rgb(150,150,150)");
-    page3_right->setStyleSheet("background-color: rgb(160,150,150)");
+    page3_left->setStyleSheet(style1.widget_gray1);
+    page3_center->setStyleSheet(style1.widget_gray1);
+    page3_right->setStyleSheet(style1.widget_gray1);
     ///page3_left
     QLabel* label_left = new QLabel("left splitter");
     label_left->setMaximumSize(200, 50);
-    label_left->setStyleSheet(style1.label_pink);
+    label_left->setStyleSheet(style1.label1);
     label_left->setAlignment(Qt::AlignCenter);
     page3_left_layout->addWidget(label_left);
     
@@ -505,45 +511,44 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ///page3_center
     QLabel* label_center = new QLabel("center splitter");
     label_center->setMaximumSize(200, 50);
-    label_center->setStyleSheet(style1.label_pink);
+    label_center->setStyleSheet(style1.label1);
     label_center->setAlignment(Qt::AlignCenter);
     page3_center_layout->addWidget(label_center);
     ///page3_right
     QLabel* label_right = new QLabel("right splitter");
     label_right->setMaximumSize(200, 50);
-    label_right->setStyleSheet(style1.label_pink);
+    label_right->setStyleSheet(style1.label1);
     label_right->setAlignment(Qt::AlignCenter);
     page3_right_layout->addWidget(label_right);
-
-    ///page3   @slot
+    ///page3@slot
     connect(tableWidget, SIGNAL(clicked()), this, SLOT(matrix_table_show()));
     connect(wiggle_button_H, SIGNAL(clicked()), this, SLOT(WiggleView_show_H()));
     connect(wiggle_button_V, SIGNAL(clicked()), this, SLOT(WiggleView_show_V()));
     connect(Save_Wiggle, SIGNAL(clicked()), this, SLOT(saveWiggle_1()));
-
-    ///page4显示3D
+    ///page4*********
+    ///page4*********
     QVBoxLayout* page4_layout = new QVBoxLayout(page4);
     QSplitter* splitter_page4 = new QSplitter(Qt::Horizontal);
     page4_layout->addWidget(splitter_page4);
     QWidget* page4_left = new QWidget();
     QVBoxLayout* page4_left_layout = new QVBoxLayout(page4_left);//左边splitter
-    //page2_left->setMinimumWidth(200);
+    //page4_left->setMinimumWidth(200);
     QWidget* page4_center = new QWidget();
     QVBoxLayout* page4_center_layout = new QVBoxLayout(page4_center);//中间splitter
-    //page2_center->setMinimumWidth(200);
+    //page4_center->setMinimumWidth(200);
     QWidget* page4_right = new QWidget();
     QVBoxLayout* page4_right_layout = new QVBoxLayout(page4_right);//右边splitter
-    //page2_right->setMinimumWidth(200);
-    page4_left->setStyleSheet("background-color: rgb(150,150,160)");
-    page4_center->setStyleSheet("background-color: rgb(150,150,150)");
-    page4_right->setStyleSheet("background-color: rgb(160,150,150)");
+    //page4_right->setMinimumWidth(200);
+    page4_left->setStyleSheet(style1.widget_gray1);
+    page4_center->setStyleSheet(style1.widget_gray1);
+    page4_right->setStyleSheet(style1.widget_gray1);
     splitter_page4->addWidget(page4_left);
     splitter_page4->addWidget(page4_center);
     splitter_page4->addWidget(page4_right);
     //page4_left
     QLabel* page4_label_left = new QLabel("left splitter");
     page4_label_left->setMaximumSize(200, 50);
-    page4_label_left->setStyleSheet(style1.label_pink);
+    page4_label_left->setStyleSheet(style1.label1);
     page4_label_left->setAlignment(Qt::AlignCenter);
     page4_left_layout->addWidget(page4_label_left);
 
@@ -555,31 +560,52 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     //page4_center
     QLabel* page4_label_center = new QLabel("left splitter");
     page4_label_center->setMaximumSize(200, 50);
-    page4_label_center->setStyleSheet(style1.label_pink);
+    page4_label_center->setStyleSheet(style1.label1);
     page4_label_center->setAlignment(Qt::AlignCenter);
     page4_center_layout->addWidget(page4_label_center);
     //page4_right
     QLabel* page4_label_right = new QLabel("left splitter");
     page4_label_right->setMaximumSize(200, 50);
-    page4_label_right->setStyleSheet(style1.label_pink);
+    page4_label_right->setStyleSheet(style1.label1);
     page4_label_right->setAlignment(Qt::AlignCenter);
     page4_right_layout->addWidget(page4_label_right);
+    ///************page5
+    ///************page5
+    QVBoxLayout* page5_layout = new QVBoxLayout(page5);
+    QTabWidget* page5_tabwidget = new QTabWidget();
+    QWidget* page5_tabwidget1 = new QWidget();
+    QWidget* page5_tabwidget2 = new QWidget();
+    QWidget* page5_tabwidget3 = new QWidget();
+    page5_tabwidget->addTab(page5_tabwidget1, QString::fromLocal8Bit("窗口1"));//添加tab
+    page5_tabwidget->addTab(page5_tabwidget2, QString::fromLocal8Bit("窗口2"));
+    page5_tabwidget->addTab(page5_tabwidget3, QString::fromLocal8Bit("窗口3"));
+    page5_tabwidget1->setStyleSheet(style1.widget_gray1);//设置样式
+    page5_tabwidget2->setStyleSheet(style1.widget_gray2);
+    page5_tabwidget3->setStyleSheet(style1.widget_gray1);
+    page5_tabwidget->setStyleSheet(style1.tabStyle);
+
+    page5_tabwidget->setTabToolTip(0, QString::fromLocal8Bit("窗口1tooltip"));//设置提示
+    page5_tabwidget->setTabToolTip(1, QString::fromLocal8Bit("窗口2tooltip"));
+    page5_tabwidget->setTabToolTip(2, QString::fromLocal8Bit("窗口3tooltip"));
+    /*page5_tabwidget->setTabEnabled(0, true);
+    page5_tabwidget->setTabEnabled(1, false);
+    page5_tabwidget->setTabEnabled(2, true);*///设置页面激活
+    //page5_tabwidget->setTabText(0, "hello");//设置tab索引text
+    page5_layout->addWidget(page5_tabwidget);
 }
 Qt_segy_process::~Qt_segy_process()
 {}
 void Qt_segy_process::main_page() {
     stackedWidget1->setCurrentIndex(0);
-    QString  path = "D:\\Code\\visual_code\\Open_Cv\\Qt_segy_process\\Qt_segy_process\\icon\\shuidi.jpg";  // 替换为你的图片路径
-    // Check if the file exists
-    QFile file(path);
-    if (!file.exists()) {
-        ui.statusBar->showMessage(tr("Missing home page picture, please check."), 3000);
-        return;
-    }
-    label_picture->setMinimumSize(600, 400);
-    Mat src = cv::imread(path.toStdString());
-    QImage qtImage(src.data, src.cols, src.rows, src.step, QImage::Format_BGR888);
-    label_picture->setPixmap(QPixmap::fromImage(qtImage).scaled(label_picture->size()));
+    ui.statusBar->showMessage(" Page1-->", 5000);
+    stylesheet_QT style1;
+    QString widget_gray1 = "Seis Data\n Processing";
+    label_picture->setStyleSheet(style1.label_main);
+    label_picture->setText(widget_gray1);
+    label_picture->setMinimumSize(400, 300);
+    label_picture->setAlignment(Qt::AlignCenter);
+    page1->setStyleSheet(style1.widget_gray1);
+
 }
 
 void Qt_segy_process::on_stackpage1_change_clicked()//按钮点击切换到第一页槽函数内容
@@ -704,11 +730,11 @@ void Qt_segy_process::show_segy() {
     stackedWidget1->setCurrentIndex(0);//显示图片呢，跳转到首页
     stylesheet_QT style2;
     ui.statusBar->setStyleSheet(style2.styleSheet_bar); 
+    label_picture->setStyleSheet(style2.widget_gray2);
 }
 //save
 void  Qt_segy_process::save_segy() {
 
-    
     ui.statusBar->showMessage(tr("hello!"), 5000);
     if (dataArray_real.empty()) {
         qDebug() << "data is empty. Make sure to load data first!";
@@ -1090,95 +1116,6 @@ cv::Mat Qt_segy_process::dataArray2image(std::vector<std::vector<float>> dataArr
     return image_temp;
     ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
 }
-//二维数据直接转换为图像cv显示
-void Qt_segy_process::data2d2image(std::vector<std::vector<float>> dataArray) {
-    if (dataArray.empty())
-    {//先判断数据是否初始化
-        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
-        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
-        return;
-    }
-    dataArray = normalized(dataArray);
-    dataArray = transposeMatrix(dataArray);
-    cv::Mat image_temp(dataArray.size(), dataArray[0].size(), CV_8U);//获取到二维数组的行和列；
-    for (int i = 0; i < dataArray.size(); ++i) {
-        for (int j = 0; j < dataArray[i].size(); ++j) {
-            // 假设 dataArray 的元素是 [0, 1] 范围内的浮点数
-            image_temp.at<uchar>(i, j) = dataArray[i][j] * 255;
-        }
-    }
-    cv::Mat colorMap;
-    applyColorMap(image_temp, colorMap, cv::COLORMAP_OCEAN); // 使用Jet颜色映射，你可以选择其他映射
-    /*COLORMAP_JET：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度。
-    COLORMAP_RAINBOW：彩虹颜色映射，用于表示连续数据的不同级别。
-    COLORMAP_HOT：Hot颜色映射，用于表示热度，通常用于温度数据。
-    COLORMAP_COOL：Cool颜色映射，用于表示温度，通常从冷到热的温度变化。
-    COLORMAP_SPRING：Spring颜色映射，用于表示温度或温度变化。
-    COLORMAP_SUMMER：Summer颜色映射，用于表示季节或温度。
-    COLORMAP_AUTUMN：Autumn颜色映射，用于表示季节或温度。
-    COLORMAP_WINTER：Winter颜色映射，用于表示季节或温度。
-    COLORMAP_OCEAN：Ocean颜色映射，通常用于表示海洋或水的深度。
-    COLORMAP_PINK：Pink颜色映射，通常用于表示连续数据的不同级别。
-    COLORMAP_HOT：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度*/
-    cv::namedWindow("Original", cv::WINDOW_NORMAL);
-    cv::imshow("Original", image_temp); // 显示原始图像
-    cv::namedWindow("colormap", cv::WINDOW_NORMAL);
-    cv::imshow("colormap", colorMap); // 显示原始图像
-    waitKey(0);
-    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
-    ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
-}
-//data1d_2chartview封装
-void Qt_segy_process::data1d_2chartview(std::vector<float> data) {
-    if (data.empty())
-    {//先判断数据是否初始化
-    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
-    ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
-    return;
-    }
-    ///QChartView绘图
-    QChartView* ChartView_widget = new QChartView();
-    QChart* chart = new QChart();
-    QSplineSeries* series = new QSplineSeries();
-    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
-    for (size_t i = 0; i < data.size(); ++i) {
-        series->append(i, data[i]);
-    }
-    chart->addSeries(series);
-    // 创建坐标轴
-    QValueAxis* axisX = new QValueAxis;
-    QValueAxis* axisY = new QValueAxis;
-    // 设置坐标轴标签
-    axisX->setTitleText("X");
-    axisY->setTitleText("Y");
-    QFont font;
-    font.setPointSize(20);  // 设置字体大小
-    axisX->setTitleFont(font);
-    axisY->setTitleFont(font);
-
-    // 计算数据的最大值
-    float maxDataValue = *std::max_element(data.begin(), data.end());
-    // 设置Y轴最大值为data数据最大值的1.2倍
-    axisY->setMax(maxDataValue * 1.2);
-    // 将坐标轴添加到 QChart 中
-    chart->addAxis(axisX, Qt::AlignBottom);
-    chart->addAxis(axisY, Qt::AlignLeft);
-
-    // 将系列关联到坐标轴
-    series->attachAxis(axisX);
-    series->attachAxis(axisY);
-
-    chart->legend()->hide();
-    QString message = QString("series %1").arg(data.size());
-    
-    chart->setTitle(message);
-    chart->setTitleFont(font);
-    //chart->createDefaultAxes();
-    chart->setTheme(QChart::ChartThemeLight);
-    ChartView_widget->setChart(chart);
-    ChartView_widget->show();
-    return;
-}
 //open_csv
 void Qt_segy_process::open_csv() {
     qDebug() << "input data!";
@@ -1418,7 +1355,7 @@ for (int data_tracei = 0; data_tracei < num_traces; ++data_tracei) {//根据单道的
     cv::destroyAllWindows(); // 关闭所有OpenCV窗口
 
 }
-///单道数据agc
+//单道数据agc
 void Qt_segy_process::trace_i_agc() {
 
     if (dataArray_real.empty()) {//先判断数据是否初始化
@@ -1570,7 +1507,7 @@ void Qt_segy_process::trace_i_agc() {
     ChartView_widget2->show();
 
 }
-///agc保存
+//agc保存
 void  Qt_segy_process::save_AGC_segy() {
     /// Write the 2D vector to the output file
     std::ofstream fileout;
@@ -1607,7 +1544,7 @@ void  Qt_segy_process::save_AGC_segy() {
     fileout.close();
     ui.statusBar->showMessage(tr("saved AGC data successfully!"));
 }
-///切除极小值，防止数据超出范围
+//切除极小值，防止数据超出范围
 std::vector<std::vector<float>> Qt_segy_process::Exc_min(std::vector<std::vector<float>> matrix) 
 {
     float cut_min = 1e-10;
@@ -2589,20 +2526,26 @@ void Qt_segy_process::STOCK_function() {
     chart_s_data->setTitleFont(font);
     chartView_stock->setRenderHint(QPainter::Antialiasing);
     layout_stock->addWidget(chartView_stock);
-    stack_save = new QPushButton("ST_save");
+    stack_save = new QPushButton("ST_save_picture");
+    QPushButton* stack_save_data = new QPushButton("ST_save_csv");
     stack_close = new QPushButton("ST_close");
+
     QWidget* widget_button = new QWidget();
     QHBoxLayout* widget_button_layout = new QHBoxLayout(widget_button);
     layout_stock->addWidget(widget_button);
     widget_button_layout->addWidget(stack_save);
+    widget_button_layout->addWidget(stack_save_data);
     widget_button_layout->addWidget(stack_close);
     stack_save->setMinimumSize(100, 30);
     stack_save->setMaximumSize(200, 50);
+    stack_save_data->setMinimumSize(100, 30);
+    stack_save_data->setMaximumSize(200, 50);
     stack_close->setMinimumSize(100, 30);
     stack_close->setMaximumSize(200, 50);
     stylesheet_QT style_button;
-    stack_save->setStyleSheet(style_button.stack_save);
-    stack_close->setStyleSheet(style_button.stack_save);
+    stack_save->setStyleSheet(style_button.button_main);
+    stack_save_data->setStyleSheet(style_button.button_main);
+    stack_close->setStyleSheet(style_button.button_main);
 
     ///计算参数
     double dt = 0.0005;//采样率500us
@@ -2622,10 +2565,14 @@ void Qt_segy_process::STOCK_function() {
     vector<vector<complex<double>>> data_s = myst(t, s, freqlow, freqhigh, alpha);//计算出的是复数
     std::vector<std::vector<float>> temp(data_s.size(), std::vector<float>(data_s[0].size()));//存储绝对值部分
     for (size_t i = 0; i < data_s.size(); ++i) {
+        vector<float> row;
         for (size_t j = 0; j < data_s[i].size(); ++j) {
             temp[i][j] = std::abs(data_s[i][j]);
+            row.push_back(std::abs(data_s[i][j]));
         }
+        stocked_data.push_back(row);
     }
+    
     ///图片显示
     temp = normalized(temp);
     src = dataArray2image(temp);
@@ -2645,13 +2592,13 @@ void Qt_segy_process::STOCK_function() {
 
     ///slot
     connect(stack_save, SIGNAL(clicked()), this, SLOT(save_stackimage()));//槽函数内部实现关闭;
+    connect(stack_save_data, SIGNAL(clicked()), this, SLOT(save_stacked_data()));
     connect(stack_close, SIGNAL(clicked()), this, SLOT(close_stackwindow()));
 }
 //存储stackwell结果
 void   Qt_segy_process::save_stackimage() {
     // 显示保存对话框
     QString filePath = QFileDialog::getSaveFileName(nullptr, "Save Image", "", "Images (*.png *.jpg)");
-
     // 如果用户点击了保存按钮
     if (!filePath.isEmpty()) {
         // 保存QPixmap到用户选择的文件路径
@@ -2662,6 +2609,9 @@ void   Qt_segy_process::save_stackimage() {
             qDebug() << "Failed to save image!";
         }
     }
+}
+void  Qt_segy_process::save_stacked_data() {
+    save_2d_data(stocked_data);
 }
 //关闭stackwell窗口
 void  Qt_segy_process::close_stackwindow() {
@@ -3033,7 +2983,7 @@ void Qt_segy_process::filter_1d_widget() {
     QWidget* widget_1 = new QWidget();
     stylesheet_QT style_info;
     widget_1->setMinimumSize(600, 400);
-    widget_1->setStyleSheet(style_info.information_widget);
+    widget_1->setStyleSheet(style_info.widget_gray1);
     widget_1->setWindowTitle("filter1!");
     QHBoxLayout* widget_1_layout = new QHBoxLayout(widget_1);
     QLabel* info_label = new QLabel("widget_hello");
@@ -3098,23 +3048,23 @@ void Qt_segy_process::update_partsegydata() {
     waitKey(0);
     cv::destroyAllWindows(); // 关闭所有OpenCV窗口
 }
-
-//page2_center_widget
+///page2_center_widget---+++++-----
 void Qt_segy_process::DFT_custom_1d_widget() {
     stylesheet_QT style_dft;
     QWidget* widget_1 = new QWidget();
     stylesheet_QT style_info;
     widget_1->setMaximumSize(800, 600);
-    widget_1->setStyleSheet(style_info.information_widget);
+    widget_1->setStyleSheet(style_info.widget_gray1);
     widget_1->setWindowTitle("DFT_custom_1d!");
     QVBoxLayout* widget_1_layout = new QVBoxLayout(widget_1);
     QLabel* info_label = new QLabel("Hello! Welcom to DFT_custom_1d");
     info_label->setMaximumSize(600, 50);
     info_label->setAlignment(Qt::AlignCenter);
-    info_label->setStyleSheet(style_dft.label_pink);
+    info_label->setStyleSheet(style_dft.label1);
     dft_trace_i = new QSpinBox();//调节windows_size数值
+    dft_trace_i->setToolTip("<html><font size='4' color='black'>dft trace i!</font></html>");
     dft_trace_i->setValue(20);//default value
-    dft_trace_i->setStyleSheet(style_dft.label_pink);
+    dft_trace_i->setStyleSheet(style_dft.label1);
     dft_trace_i->setFixedSize(200, 50);
     dft_trace_i->setMinimum(0);
     dft_trace_i->setMaximum(1000);
@@ -3122,25 +3072,30 @@ void Qt_segy_process::DFT_custom_1d_widget() {
     refresh->setFixedSize(200, 50);
     refresh->setStyleSheet(style_dft.button_main);
 
+    QPushButton* save_data = new QPushButton("Save");
+    save_data->setFixedSize(200, 50);
+    save_data->setStyleSheet(style_dft.button_main);
+
     widget_1_layout->addWidget(info_label,0,Qt::AlignHCenter);
     widget_1_layout->addWidget(dft_trace_i, 0, Qt::AlignHCenter);
     widget_1_layout->addWidget(refresh, 0, Qt::AlignHCenter);
+    widget_1_layout->addWidget(save_data, 0, Qt::AlignHCenter);
     widget_1->show();
     connect(refresh, SIGNAL(clicked()), this, SLOT(display_dft_chart_window()));
+    connect(save_data, SIGNAL(clicked()), this, SLOT(save_trace_i_dft_real()));
 
 }
 void Qt_segy_process::display_dft_chart_window() {
-    if (dataArray_real.empty()) {
+    if (dataArray_real.empty()) {//计算得到dft数据
         qDebug() << "data is empty. Make sure to load data first!";
         ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
         return;//返回默认vector
     }
-
     std::vector<std::vector<float>>temp = dataArray_real;
     temp = transposeMatrix(temp);//T
     std::vector<float> trace_i_data;
     std::vector<std::complex<float>> trace_i_data_dft_result;
-    std::vector<float> trace_i_data_dft_real;
+    /*std::vector<float> trace_i_data_dft_real;*/
     for (int i = 0; i < temp.size(); i++) 
     {//获取指定i的单道数据
         trace_i_data.push_back(temp[i][dft_trace_i->value()]);//得到一维向量data
@@ -3153,7 +3108,192 @@ void Qt_segy_process::display_dft_chart_window() {
     }
     data1d_2chartview(trace_i_data_dft_real);
 }
+void Qt_segy_process::save_trace_i_dft_real() {
+    //std::ofstream fileout;
+    //QString SaveFile_segy = QFileDialog::getSaveFileName(this,//对话框得到存储路径
+    //    "Save data",
+    //    "",
+    //    "Data Files(*.txt*.csv);;All(*.*)");
+    //std::string filePath = SaveFile_segy.toStdString();//Qstring-->string
 
+    //fileout.open(filePath);  // Open the output file
+    //if (!fileout.is_open())
+    //{
+    //    std::cout << "Can not open File " << filePath << std::endl;
+    //    return;
+    //}
+    ////将需要存储的数据传入
+    //if (trace_i_data_dft_real.empty()) {
+    //    qDebug() << "data is empty. Make sure to load data first!";
+    //    ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
+    //    return;
+    //}
+    //// Write the 1D vector to the output file
+    //for (int i = 0; i < trace_i_data_dft_real.size(); i++)
+    //{
+    //        fileout << trace_i_data_dft_real[i];
+    //    fileout << std::endl;
+    //}
+    //fileout.close();
+    //ui.statusBar->showMessage(tr("saved data successfully!"));
+    save_1d_data(trace_i_data_dft_real);
+    save_2d_data(dataArray_real);//测试存储二维数据
+}
+///@@@@@@@@*****************
+//对保存一维数据函数进行封装
+void Qt_segy_process::save_1d_data(std::vector<float> data_1d) {
+    //将需要存储的数据传入
+    if (data_1d.empty()) {
+        qDebug() << "data is empty. Make sure to load data first!";
+        ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
+        return;
+    }
+    std::ofstream fileout;
+    QString SaveFile_segy = QFileDialog::getSaveFileName(this,//对话框得到存储路径
+        "Save data",
+        "",
+        "Data Files(*.txt*.csv);;All(*.*)");
+    std::string filePath = SaveFile_segy.toStdString();//Qstring-->string
+
+    fileout.open(filePath);  // Open the output file
+    if (!fileout.is_open())
+    {
+        std::cout << "Can not open File " << filePath << std::endl;
+        return;
+    }
+    
+    // Write the 1D vector to the output file
+    for (int i = 0; i < data_1d.size(); i++)
+    {
+        fileout << data_1d[i];
+        fileout << std::endl;
+    }
+    fileout.close();
+    ui.statusBar->showMessage(tr("saved data successfully!"));
+}
+//对保存二维数据函数进行封装
+void Qt_segy_process::save_2d_data(std::vector<std::vector<float>> data_2d) {
+    if (data_2d.empty()) {
+        qDebug() << "data is empty. Make sure to load data first!";
+        ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
+        return;
+    }
+    /// Write the 2D vector to the output file
+    std::ofstream fileout;
+    QString SaveFile_segy = QFileDialog::getSaveFileName(this,//对话框得到存储路径
+        "Save data2d",
+        "",
+        "Data Files(*.txt*.csv);;All(*.*)");
+    std::string filePath = SaveFile_segy.toStdString();//Qstring-->string
+    fileout.open(filePath);  // Open the output file
+    if (!fileout.is_open())
+    {
+        std::cout << "Can not open File " << filePath << std::endl;
+        return;
+    }
+    dataArray_save = data_2d;//将需要存储的数据传入
+    // Write the 2D vector to the output file
+    for (int i = 0; i < dataArray_save.size(); i++)
+    {
+        for (int j = 0; j < dataArray_save[i].size(); j++)
+        {
+            fileout << dataArray_save[i][j] << ",";
+        }
+        fileout << std::endl;
+    }
+    fileout.close();
+    ui.statusBar->showMessage(tr("saved 2d data successfully!"));
+}
+//数据转图表data1d_2chartview封装
+void Qt_segy_process::data1d_2chartview(std::vector<float> data) {
+    if (data.empty())
+    {//先判断数据是否初始化
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    ///QChartView绘图
+    QChartView* ChartView_widget = new QChartView();
+    QChart* chart = new QChart();
+    QSplineSeries* series = new QSplineSeries();
+    // 将 std::vector<float> 中的数据添加到 QSplineSeries 中
+    for (size_t i = 0; i < data.size(); ++i) {
+        series->append(i, data[i]);
+    }
+    chart->addSeries(series);
+    // 创建坐标轴
+    QValueAxis* axisX = new QValueAxis;
+    QValueAxis* axisY = new QValueAxis;
+    // 设置坐标轴标签
+    axisX->setTitleText("X");
+    axisY->setTitleText("Y");
+    QFont font;
+    font.setPointSize(20);  // 设置字体大小
+    axisX->setTitleFont(font);
+    axisY->setTitleFont(font);
+
+    // 计算数据的最大值
+    float maxDataValue = *std::max_element(data.begin(), data.end());
+    // 设置Y轴最大值为data数据最大值的1.2倍
+    axisY->setMax(maxDataValue * 1.2);
+    // 将坐标轴添加到 QChart 中
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // 将系列关联到坐标轴
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    chart->legend()->hide();
+    QString message = QString("series %1").arg(data.size());
+
+    chart->setTitle(message);
+    chart->setTitleFont(font);
+    //chart->createDefaultAxes();
+    chart->setTheme(QChart::ChartThemeLight);
+    ChartView_widget->setChart(chart);
+    ChartView_widget->show();
+    return;
+}
+//二维数据直接转换为图像cv显示封装
+void Qt_segy_process::data2d2image(std::vector<std::vector<float>> dataArray) {
+    if (dataArray.empty())
+    {//先判断数据是否初始化
+        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    dataArray = normalized(dataArray);
+    dataArray = transposeMatrix(dataArray);
+    cv::Mat image_temp(dataArray.size(), dataArray[0].size(), CV_8U);//获取到二维数组的行和列；
+    for (int i = 0; i < dataArray.size(); ++i) {
+        for (int j = 0; j < dataArray[i].size(); ++j) {
+            // 假设 dataArray 的元素是 [0, 1] 范围内的浮点数
+            image_temp.at<uchar>(i, j) = dataArray[i][j] * 255;
+        }
+    }
+    cv::Mat colorMap;
+    applyColorMap(image_temp, colorMap, cv::COLORMAP_OCEAN); // 使用Jet颜色映射，你可以选择其他映射
+    /*COLORMAP_JET：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度。
+    COLORMAP_RAINBOW：彩虹颜色映射，用于表示连续数据的不同级别。
+    COLORMAP_HOT：Hot颜色映射，用于表示热度，通常用于温度数据。
+    COLORMAP_COOL：Cool颜色映射，用于表示温度，通常从冷到热的温度变化。
+    COLORMAP_SPRING：Spring颜色映射，用于表示温度或温度变化。
+    COLORMAP_SUMMER：Summer颜色映射，用于表示季节或温度。
+    COLORMAP_AUTUMN：Autumn颜色映射，用于表示季节或温度。
+    COLORMAP_WINTER：Winter颜色映射，用于表示季节或温度。
+    COLORMAP_OCEAN：Ocean颜色映射，通常用于表示海洋或水的深度。
+    COLORMAP_PINK：Pink颜色映射，通常用于表示连续数据的不同级别。
+    COLORMAP_HOT：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度*/
+    cv::namedWindow("Original", cv::WINDOW_NORMAL);
+    cv::imshow("Original", image_temp); // 显示原始图像
+    cv::namedWindow("colormap", cv::WINDOW_NORMAL);
+    cv::imshow("colormap", colorMap); // 显示原始图像
+    waitKey(0);
+    cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+    ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
+}
+///@@@@@@@@*****************
 //toolbar显示version
 void Qt_segy_process::show_version_info() {
 
@@ -3161,18 +3301,18 @@ void Qt_segy_process::show_version_info() {
     stylesheet_QT style_info;
 
     widget_info->setMinimumSize(600, 400);
-    widget_info->setStyleSheet(style_info.information_widget);
+    widget_info->setStyleSheet(style_info.widget_gray1);
     widget_info->setWindowTitle("version!");
 
     QVBoxLayout* widget_info_layout = new QVBoxLayout(widget_info);
 
     QLabel* info_label = new QLabel("Software Information");
     info_label->setMaximumSize(600, 50);
-    info_label->setStyleSheet("color:rgb(0,0,128); font-size:30px; border-radius:50px; ");
+    info_label->setStyleSheet(style_info.label1);
 
     QWidget* widget_1 = new QWidget();
     widget_1->setMinimumHeight(200);
-    widget_1->setStyleSheet(style_info.information_widget);
+    widget_1->setStyleSheet(style_info.widget_gray1);
 
     QVBoxLayout* widget_1_layout = new QVBoxLayout(widget_1);
     widget_info_layout->addWidget(info_label);
@@ -3180,14 +3320,14 @@ void Qt_segy_process::show_version_info() {
 
     QTextEdit* textEdit1 = new QTextEdit();///放置信息
     textEdit1->setReadOnly(true);
-    textEdit1->setStyleSheet("background-color:rgb(200,200,200);font-size:20px; ");
+    textEdit1->setStyleSheet(style_info.widget_gray2);
     widget_1_layout->addWidget(textEdit1);
     textEdit1->setPlainText("Version_1.0,author by Rain!\n"
                             "Warning: This computer program is protected by copyright laws and international treaties.");
     info_close = new QPushButton("ok");
     info_close->setMinimumSize(100, 30);
     info_close->setMaximumSize(160, 50);
-    info_close->setStyleSheet(style_info.button_save_style1);
+    info_close->setStyleSheet(style_info.button_main);
     
 
     widget_info_layout->addWidget(info_close, 0, Qt::AlignHCenter);
@@ -3203,10 +3343,11 @@ void Qt_segy_process::show_version_info() {
 void Qt_segy_process::closeVersionInfo() {
     widget_info->close();
 }
-
 ///完成封装
-//1.data1d_2chartview 一维数据转图表
-//2.data2d2image二维数据转图像
+//data1d_2chartview 一维数据转图表
+//data2d2image二维数据转图像
+//save_1d_data保存1维数据
+//save_2d_data保存二维数据
 ///数据处理函数
 //getsegyarray获取segy数据
 //STStock变换计算时频谱
