@@ -16,13 +16,13 @@ public:
                         QPushButton:hover{background-color:#475569}
                         QPushButton:pressed{padding-top:5px;padding-left:5px;})";
 
-    QString widget_gray1 = "background-color: #1e293b;border-radius:10px;";
+    QString widget_gray1 = "background-color: #1e293b;";//深色
 
-    QString widget_gray2 = "background-color: #cbd5e1;border-radius:10px;";
+    QString widget_gray2 = "background-color: #cbd5e1;";//浅色
 
-    QString widget_glass = "background-color: #475569;border-radius:10px;";
+    QString widget_glass = "background-color: #475569;border-radius:10px;";//半透明
 
-    QString label1 = "color:#cbd5e1;background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #334155, stop:1 #598EF3);font-size:20px;border - radius:10px; ";
+    QString label1 = "color:#cbd5e1;background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #334155, stop:1 #598EF3);font-size:20px;border-radius:16px;";
     
     QString label_main= "color:#598EF3;font-size:88px;font-style: italic; font-weight: bold;";
 

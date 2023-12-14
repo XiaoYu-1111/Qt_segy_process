@@ -2027,12 +2027,13 @@ void Qt_segy_process::matrix_table_show() {
 }
 //wiggle显示地震数据horizontal direction
 void Qt_segy_process::WiggleView_show_H() {
-
+    stylesheet_QT style1;
+    ui.statusBar->setStyleSheet(style1.styleSheet_bar);
     ui.statusBar->setStyleSheet("background-color:orange");
     std::vector<std::vector<float>> matrix;
     if (dataArray_real.empty()) 
     {//先判断数据是否初始化
-    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    
     ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
     return;
     }
@@ -2089,11 +2090,10 @@ void Qt_segy_process::WiggleView_show_H() {
 }
 //wiggle显示地震数据vertical direction
 void Qt_segy_process::WiggleView_show_V() {
-        ui.statusBar->setStyleSheet("background-color:orange");
-        //判断数据
+    stylesheet_QT style1;
+    ui.statusBar->setStyleSheet(style1.styleSheet_bar);
         std::vector<std::vector<float>> matrix;
-        if (dataArray_real.empty()) {
-            ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+        if (dataArray_real.empty()) {//判断数据
             ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
             return;
         }
@@ -3053,6 +3053,7 @@ void Qt_segy_process::DFT_custom_1d_widget() {
     stylesheet_QT style_dft;
     QWidget* widget_1 = new QWidget();
     stylesheet_QT style_info;
+    widget_1->setMinimumSize(600, 400);
     widget_1->setMaximumSize(800, 600);
     widget_1->setStyleSheet(style_info.widget_gray1);
     widget_1->setWindowTitle("DFT_custom_1d!");
