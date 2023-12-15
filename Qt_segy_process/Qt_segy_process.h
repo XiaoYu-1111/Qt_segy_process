@@ -19,6 +19,7 @@
 
 #include<qimageiohandler.h>
 #include<qstackedwidget.h>
+#include <QDockWidget>
 #include <opencv2/opencv.hpp>
 #include<qspinbox.h>
 #include<qcombobox.h>
@@ -155,6 +156,8 @@ public://公共成员segy
     QSpinBox* dft_trace_i;
     std::vector<float> trace_i_data_dft_real;
 
+    QSpinBox* header_samplerate;//全局采样率
+
 
 public slots://segy数据槽函数
 
@@ -205,8 +208,8 @@ public slots://segy数据槽函数
     void Dial_4_ValueChanged(int value);
     void agcdata2dataarray();//将当前默认数据更换为agc数据
     void get_orignal_real();//获取实际数据data_real
-    //3d
-    void draw3DData();
+    void csvdata2dataarray();//csv数据转dataarray
+    
     //S变换
     void STOCK_function();
     std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
@@ -238,6 +241,13 @@ public slots://segy数据槽函数
     void save_trace_i_dft_real();
     void save_1d_data(std::vector<float> data_1d);
     void save_2d_data(std::vector<std::vector<float>> data_2d);
+    //page2_right
+    void Filter_widget();
+    //page4
+    //3d
+    void draw3DData();
+    void draw3Dsurface();
+
 
 public:
     QWidget* widget_info;//信息窗口
@@ -245,6 +255,10 @@ public:
 
 public slots:
     ///toolbar
+    //setting
+    void setting_header();
+    void confirm_header();
+    //version
     void show_version_info();//显示版本信息
     void closeVersionInfo();
     bool eventFilter(QObject* obj, QEvent* event);
