@@ -107,7 +107,12 @@
     <QtRcc Include="Qt_segy_process.qrc" />
     <QtUic Include="Qt_segy_process.ui" />
     <QtMoc Include="Qt_segy_process.h" />
-    <ClCompile Include="Qt_segy_process.cpp" />
+    <ClCompile Include="Qt_segy_process.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

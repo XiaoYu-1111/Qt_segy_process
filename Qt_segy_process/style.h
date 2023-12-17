@@ -32,4 +32,16 @@ public:
     QString textEdit = "color:#cbd5e1;background-color: #475569;font-size:15px;border-radius:10px;";
     QString dock_widget = "background-color:#1e293b;color:#cbd5e1;";
     QString dock_textEdit = "color:#cbd5e1;background-color: #475569;font-size:15px;";
+
+    QString style_bar = "QProgressBar {"
+        "border: 2px solid #1e293b;"
+        "border-radius: 5px;"
+        "text-align: center;"
+        "font:30px;"
+        "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #334155, stop:1 #598EF3);"
+        "}"
+        "QProgressBar::chunk {"
+        "background-color: #2563eb;"
+        "width: 10px;" // 设置进度条块的宽度
+        "}";
 };

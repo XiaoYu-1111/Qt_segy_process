@@ -32,15 +32,15 @@
     <QtMoc Include="Qt_segy_process.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <ClCompile Include="Qt_segy_process.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xyseriesiodevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Qt_segy_process.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

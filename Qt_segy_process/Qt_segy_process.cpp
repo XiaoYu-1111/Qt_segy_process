@@ -2099,36 +2099,82 @@ bool Qt_segy_process::eventFilter(QObject* obj, QEvent* event) {//鼠标滚轮缩放
 }
 //S变换
 void Qt_segy_process::STOCK_function() {
-    //建立显示窗口
-    widget_stockwell_fun = new QWidget();
+    if (dataArray.empty()) {//先判断数据是否初始化
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
+    widget_stockwell_fun = new QWidget();//建立显示窗口
+    widget_stockwell_fun->setMinimumSize(800, 600);
+    stylesheet_QT style_button;
+    widget_stockwell_fun->setStyleSheet(style_button.widget_gray1);
     QChartView* chartView_stock = new QChartView();
-    QChart* chart_s_data = new QChart();
-    QLabel* label_stack = new QLabel();
-    QSplineSeries* series_stock = new QSplineSeries();//1
+    chart_s_data = new QChart();
+    
+    series_stock = new QSplineSeries();//1
     chart_s_data->addSeries(series_stock);//2
     QVBoxLayout* layout_stock = new QVBoxLayout(widget_stockwell_fun);
-    label_stack->setMinimumSize(600, 400);
-    layout_stock->addWidget(label_stack);
-
+    
     chartView_stock->setChart(chart_s_data);
     chartView_stock->setMaximumHeight(400);
     widget_stockwell_fun->show();
 
-    if (dataArray.empty()) {//先判断数据是否初始化
-        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
-        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
-        return;
-    }
     vector<std::vector<float>> data;
     data = transposeMatrix(dataArray_real);
-    vector<double> s;//存储单道数据空间
-    vector<double> t;// 存储生成时间序列 t
-    int data_tracei = 45;//道数
+    //vector<double> s;//存储单道数据空间
+    //vector<double> t;// 存储生成时间序列 t
+    //tracei_widget
+    QWidget* widget_tracei = new QWidget();
+    QHBoxLayout* widget_tracei_layout = new QHBoxLayout(widget_tracei);
+    QLabel* label_trace = new QLabel("trace_i");
+    StockTF_trace_i = new QSpinBox();
+    label_trace->setStyleSheet(style_button.label1);
+    StockTF_trace_i->setStyleSheet(style_button.label1);
+    label_trace->setMaximumSize(200, 50);
+    StockTF_trace_i->setMaximumSize(200, 50);
+    StockTF_trace_i->setValue(20);
+    widget_tracei_layout->addWidget(label_trace);
+    widget_tracei_layout->addWidget(StockTF_trace_i);
+    layout_stock->addWidget(widget_tracei);
+    //parmetar_widget
+    QWidget* widget_parmeter = new QWidget();
+    QHBoxLayout* widget_parmeter_layout = new QHBoxLayout(widget_parmeter);
+    QLabel* label_widget_parmetar = new QLabel("widget_parmetar");
+    freqlow_st = new QSpinBox();
+    freqhigh_st = new QSpinBox();
+    alpha_st = new QSpinBox();
+
+    label_widget_parmetar->setStyleSheet(style_button.label1);
+    freqlow_st->setStyleSheet(style_button.label1);
+    freqhigh_st->setStyleSheet(style_button.label1);
+    alpha_st->setStyleSheet(style_button.label1);
+
+    label_widget_parmetar->setMaximumSize(200, 50);
+    freqlow_st->setMaximumSize(200, 50); freqlow_st->setValue(1);
+    freqhigh_st->setMaximumSize(200, 50); freqhigh_st->setValue(400);
+
+    freqlow_st->setMaximum(freqhigh_st->value());
+    freqhigh_st->setMaximum(10000);
+    alpha_st->setMaximumSize(200, 50); alpha_st->setValue(1);
+    alpha_st->setMaximum(freqhigh_st->value());
+
+    widget_parmeter_layout->addWidget(label_widget_parmetar);
+    widget_parmeter_layout->addWidget(freqlow_st);
+    widget_parmeter_layout->addWidget(freqhigh_st);
+    widget_parmeter_layout->addWidget(alpha_st);
+    layout_stock->addWidget(widget_parmeter);
+
+    double freqlow = freqlow_st->value();
+    double freqhigh = freqhigh_st->value();
+    double alpha = alpha_st->value();
+
+    int data_tracei = StockTF_trace_i->value();//道数
+    signal_st_i.clear();
     for (int i = 0; i < data.size(); i++) {//获取指定i的单道数据
-        s.push_back(data[i][data_tracei]);//得到一维向量data
+        signal_st_i.push_back(data[i][data_tracei]);//得到一维向量data
     }
-    for (int i = 0; i < s.size(); i++) {//添加道数据显示
-        series_stock->append(i, s[i]);
+    series_stock->clear();
+    for (int i = 0; i < signal_st_i.size(); i++) {//添加道数据显示
+        series_stock->append(i, signal_st_i[i]);
     }
     QValueAxis* axisX = new QValueAxis();//添加坐标轴
     QValueAxis* axisY = new QValueAxis();
@@ -2145,35 +2191,44 @@ void Qt_segy_process::STOCK_function() {
     series_stock->attachAxis(axisX);
     series_stock->attachAxis(axisY);
     chartView_stock->setChart(chart_s_data);
-
-    if (s.empty()) {
+    if (signal_st_i.empty()) {
         std::cout << "Vector is empty." << std::endl;
         return;
     }
-    double min = s[0];// Initialize min with the first element
-    double max = s[0]; // Initialize max with the first element
-    for (int i = 0; i < s.size(); i++) {
-        if (min > s[i]) {
-            min = s[i];
+    double min = signal_st_i[0];// Initialize min with the first element
+    double max = signal_st_i[0]; // Initialize max with the first element
+    for (int i = 0; i < signal_st_i.size(); i++) {
+        if (min > signal_st_i[i]) {
+            min = signal_st_i[i];
         }
-        if (max < s[i]) {
-            max = s[i];
+        if (max < signal_st_i[i]) {
+            max = signal_st_i[i];
         }
     }
-    axisX->setRange(0, s.size());
+    axisX->setRange(0, signal_st_i.size());
     axisY->setRange(min * 2, max * 2);
     axisY->setLabelFormat("%.1f"); // 显示一位小数
-    QString chartTitle = QString("Trace Chart - Parameter %1").arg(data_tracei);
+    QString chartTitle = QString("Chart-Trace Parameter %1").arg(data_tracei);
     chart_s_data->setTitle(chartTitle);
     chart_s_data->setTitleFont(font);
     chartView_stock->setRenderHint(QPainter::Antialiasing);
     layout_stock->addWidget(chartView_stock);
+    //widget_ST
+    QPushButton* ST_button = new QPushButton("ST-transform-run");
+    ST_button->setMinimumSize(200, 50);
+    ST_button->setMaximumSize(400, 100);
+    ST_button->setStyleSheet(style_button.button_main);
+    layout_stock->addWidget(ST_button, 0, Qt::AlignHCenter);
+
+    connect(ST_button, SIGNAL(clicked()), this, SLOT(calculate_st_main()));
+    //按钮响应函数中启动线程执行耗时操作
+    
+    //widget_save
+    QWidget* widget_button = new QWidget();
+    QHBoxLayout* widget_button_layout = new QHBoxLayout(widget_button);
     stack_save = new QPushButton("ST_save_picture");
     QPushButton* stack_save_data = new QPushButton("ST_save_csv");
     stack_close = new QPushButton("ST_close");
-
-    QWidget* widget_button = new QWidget();
-    QHBoxLayout* widget_button_layout = new QHBoxLayout(widget_button);
     layout_stock->addWidget(widget_button);
     widget_button_layout->addWidget(stack_save);
     widget_button_layout->addWidget(stack_save_data);
@@ -2184,28 +2239,89 @@ void Qt_segy_process::STOCK_function() {
     stack_save_data->setMaximumSize(200, 50);
     stack_close->setMinimumSize(100, 30);
     stack_close->setMaximumSize(200, 50);
-    stylesheet_QT style_button;
+    
     stack_save->setStyleSheet(style_button.button_main);
     stack_save_data->setStyleSheet(style_button.button_main);
     stack_close->setStyleSheet(style_button.button_main);
 
     ///计算参数
+
+    //double dt = 0.0005;//采样率500us
+    //int time_len = s.size();
+    //for (int i = 0; i < time_len; i++) {
+    //    t.push_back(i * dt);
+    //}
+    //// 检查数据
+    //if (t.empty() || s.empty() || t.size() != s.size()) {
+    //    cerr << "Error: Invalid input data." << endl;
+    //    return; // 或者采取其他合适的处理方式
+    //}
+    /*double freqlow = 1.0;
+    double freqhigh = 400.0;
+    double alpha = 1.0;*/
+    ///// 计算S变换
+    //std::vector<vector<complex<double>>>data_s= myst(t, s, freqlow, freqhigh, alpha);//计算出的是复数
+    //std::vector<std::vector<float>> temp(data_s.size(), std::vector<float>(data_s[0].size()));//存储绝对值部分
+    //for (size_t i = 0; i < data_s.size(); ++i) {
+    //    vector<float> row;
+    //    for (size_t j = 0; j < data_s[i].size(); ++j) {
+    //        temp[i][j] = std::abs(data_s[i][j]);
+    //        row.push_back(std::abs(data_s[i][j]));
+    //    }
+    //    stocked_data.push_back(row);
+    //}
+    /////图片显示
+    ////temp = normalized(temp);
+    ////src = dataArray2image(temp);
+    ////QString message = QString("stock_transform completed! fre %1 ; number %2;").arg(temp.size()).arg(temp[0].size());
+    ////ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    ////ui.statusBar->showMessage(message);
+    ////qtImage2= new QImage(src.data, src.cols, src.rows, src.step, QImage::Format_Grayscale8);//灰度图
+    ////label_picture->setPixmap(QPixmap::fromImage(*qtImage2).scaled(label_picture->size()));
+    ////cv::namedWindow("STOCKWELL_transform", cv::WINDOW_NORMAL);
+    ////cv::imshow("STOCKWELL_transform", src); // 显示colorMap
+    ////waitKey(0);
+    ////cv::destroyAllWindows(); // 关闭所有OpenCV窗口
+    //data2d2image(temp);//调用函数直接显示
+    ///slot
+    connect(stack_save, SIGNAL(clicked()), this, SLOT(save_stackimage()));//槽函数内部实现关闭;
+    connect(stack_save_data, SIGNAL(clicked()), this, SLOT(save_stacked_data()));
+    connect(stack_close, SIGNAL(clicked()), this, SLOT(close_stackwindow()));
+}
+//st按钮计算函数
+void Qt_segy_process::calculate_st_main() {
+    
+    vector<std::vector<float>> data;
+    data = transposeMatrix(dataArray_real);
+    signal_st_i.clear();
+    int data_tracei = StockTF_trace_i->value();//道数
+    QString chartTitle = QString("Chart-Trace Parameter %1").arg(data_tracei);
+    chart_s_data->setTitle(chartTitle);//更新图表标题
+    for (int i = 0; i < data.size(); i++) {//获取指定i的单道数据
+        signal_st_i.push_back(data[i][data_tracei]);//得到一维向量data
+    }
+    series_stock->clear();
+    for (int i = 0; i < signal_st_i.size(); i++) {//添加道数据显示
+        series_stock->append(i, signal_st_i[i]);
+    }
     double dt = 0.0005;//采样率500us
-    int time_len = s.size();
+    int time_len = signal_st_i.size();
+    t.clear();
     for (int i = 0; i < time_len; i++) {
         t.push_back(i * dt);
     }
     // 检查数据
-    if (t.empty() || s.empty() || t.size() != s.size()) {
+    if (t.empty() || signal_st_i.empty() || t.size() != signal_st_i.size()) {
         cerr << "Error: Invalid input data." << endl;
         return; // 或者采取其他合适的处理方式
     }
-    double freqlow = 1.0;
-    double freqhigh = 400.0;
-    double alpha = 1.0;
+    double freqlow = freqlow_st->value();
+    double freqhigh = freqhigh_st->value();
+    double alpha = alpha_st->value();
     /// 计算S变换
-    vector<vector<complex<double>>> data_s = myst(t, s, freqlow, freqhigh, alpha);//计算出的是复数
+    std::vector<vector<complex<double>>>data_s = myst(t, signal_st_i, freqlow, freqhigh, alpha);//计算出的是复数
     std::vector<std::vector<float>> temp(data_s.size(), std::vector<float>(data_s[0].size()));//存储绝对值部分
+    stocked_data.clear();//多次处理之前需要清除原有的数据。clear
     for (size_t i = 0; i < data_s.size(); ++i) {
         vector<float> row;
         for (size_t j = 0; j < data_s[i].size(); ++j) {
@@ -2214,32 +2330,32 @@ void Qt_segy_process::STOCK_function() {
         }
         stocked_data.push_back(row);
     }
-    
     ///图片显示
-    temp = normalized(temp);
-    src = dataArray2image(temp);
-    QString message = QString("stock_transform completed! fre %1 ; number %2;").arg(temp.size()).arg(temp[0].size());
-    ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
-    ui.statusBar->showMessage(message);
-    qtImage2= new QImage(src.data, src.cols, src.rows, src.step, QImage::Format_Grayscale8);//灰度图
-    label_picture->setPixmap(QPixmap::fromImage(*qtImage2).scaled(label_picture->size()));
+    //temp = normalized(temp);
+    //src = dataArray2image(temp);
+    //QString message = QString("stock_transform completed! fre %1 ; number %2;").arg(temp.size()).arg(temp[0].size());
+    //ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
+    //ui.statusBar->showMessage(message);
+    //qtImage2= new QImage(src.data, src.cols, src.rows, src.step, QImage::Format_Grayscale8);//灰度图
+    //label_picture->setPixmap(QPixmap::fromImage(*qtImage2).scaled(label_picture->size()));
     //cv::namedWindow("STOCKWELL_transform", cv::WINDOW_NORMAL);
     //cv::imshow("STOCKWELL_transform", src); // 显示colorMap
     //waitKey(0);
     //cv::destroyAllWindows(); // 关闭所有OpenCV窗口
-    ///chart显示
-    label_stack->setMinimumSize(temp.size(), temp[0].size());
-    label_stack->setPixmap(QPixmap::fromImage(*qtImage2).scaled(label_stack->size()));
-    label_stack->setAlignment(Qt::AlignCenter);
-
-    ///slot
-    connect(stack_save, SIGNAL(clicked()), this, SLOT(save_stackimage()));//槽函数内部实现关闭;
-    connect(stack_save_data, SIGNAL(clicked()), this, SLOT(save_stacked_data()));
-    connect(stack_close, SIGNAL(clicked()), this, SLOT(close_stackwindow()));
+    data2d2image(temp);//调用函数直接显示
 }
 //存储stackwell结果
 void   Qt_segy_process::save_stackimage() {
+
+    if (stocked_data.empty()) {//先判断数据是否初始化
+        ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
+        return;
+    }
     // 显示保存对话框
+    std::vector<std::vector<float>> temp(stocked_data.size(), std::vector<float>(stocked_data[0].size()));
+    temp = normalized(stocked_data);
+    src = dataArray2image(temp);
+    qtImage2 = new QImage(src.data, src.cols, src.rows, src.step, QImage::Format_Grayscale8);//灰度图
     QString filePath = QFileDialog::getSaveFileName(nullptr, "Save Image", "", "Images (*.png *.jpg)");
     // 如果用户点击了保存按钮
     if (!filePath.isEmpty()) {
@@ -2251,6 +2367,7 @@ void   Qt_segy_process::save_stackimage() {
             qDebug() << "Failed to save image!";
         }
     }
+    ui.statusBar->showMessage(QString("image saved successfully!"),3000);
 }
 void  Qt_segy_process::save_stacked_data() {
     save_2d_data(stocked_data);
@@ -2269,19 +2386,7 @@ std::vector<double> linspace(double start, double end, int num) {//代替np.linsap
 }
 std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::vector<double> t, const std::vector<double> Sig,
     double freqlow, double freqhigh, double alpha) {
-    //新建进度条
- /*   QWidget* bar_widget = new QWidget();
-    bar_widget->setWindowTitle("STOCK_WELL process");
-    QVBoxLayout* bar_vlayout = new QVBoxLayout(bar_widget);
-    QProgressBar* progressBar = new QProgressBar(bar_widget);
-    progressBar->setFixedHeight(25);
-    progressBar->setMinimum(0);
-    progressBar->setMaximum(100);
-    bar_vlayout->addWidget(progressBar);
-    bar_widget->show();
-    progressBar->setValue(50);
-    progressBar->update();*/
-    // 检查输入参数并设置默认值
+
     const double PI = 3.14159265358979323846;
     // 计算频率数量
     int nLevel = static_cast<int>((freqhigh - freqlow) / alpha) + 1;
@@ -2297,13 +2402,25 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::
     // 分配计算结果的存储单元
     std::vector<std::vector<std::complex<double>>> wcoefs;
     std::vector<std::complex<double>> temp(TimeLen, std::complex<double>(0.0, 0.0));
-
     // 循环计算
-    float tiem_progess;
-    for (int m = 0; m < nLevel; ++m) {
-        tiem_progess = float(m) / float(nLevel) * 100;
-        
-        qDebug() << tiem_progess;//输出窗口显示处理进度
+    int progressValue;
+    stylesheet_QT style_bar;
+    QProgressBar* progress = new QProgressBar();//设置进度条
+    progress->setMinimumSize(800, 100);
+    progress->setWindowTitle("Qt_segy_process::myst progress");
+    progress->setStyleSheet(style_bar.style_bar);
+    progress->setRange(0, 100); // 设置进度条的范围为0到100
+    progress->show();
+    for (int m = 0; m <= nLevel; ++m) {
+        QApplication::processEvents();
+
+        progressValue = m * 100 / nLevel; // 计算整数进度值
+        progress->setValue(progressValue);
+        qDebug() << progressValue;//输出窗口显示处理进度
+        if (progressValue == 100) {
+            // 进度达到100，隐藏或关闭进度条
+            progress->hide(); // 或 progress->close();
+        }
         // 提取频率参数
         double f = fre[m];
         // 计算高斯窗口宽度
@@ -2334,6 +2451,9 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::
     
     return wcoefs;
 }
+
+    
+
 //绘制曲线
 void Qt_segy_process::drawcurve()
 {
@@ -3405,7 +3525,6 @@ void Qt_segy_process::data1d_2chartview(std::vector<float> data) {
 void Qt_segy_process::data2d2image(std::vector<std::vector<float>> dataArray) {
     if (dataArray.empty())
     {//先判断数据是否初始化
-        ui.statusBar->setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 lightgreen, stop:1 red);font-size:20px;");
         ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
         return;
     }
@@ -3419,7 +3538,7 @@ void Qt_segy_process::data2d2image(std::vector<std::vector<float>> dataArray) {
         }
     }
     cv::Mat colorMap;
-    applyColorMap(image_temp, colorMap, cv::COLORMAP_OCEAN); // 使用Jet颜色映射，你可以选择其他映射
+    applyColorMap(image_temp, colorMap, cv::COLORMAP_JET); // 使用Jet颜色映射，你可以选择其他映射
     /*COLORMAP_JET：Jet颜色映射，它是最常见的伪彩色映射之一，通常用于表示热度。
     COLORMAP_RAINBOW：彩虹颜色映射，用于表示连续数据的不同级别。
     COLORMAP_HOT：Hot颜色映射，用于表示热度，通常用于温度数据。
@@ -3437,7 +3556,7 @@ void Qt_segy_process::data2d2image(std::vector<std::vector<float>> dataArray) {
     cv::imshow("colormap", colorMap); // 显示原始图像
     waitKey(0);
     cv::destroyAllWindows(); // 关闭所有OpenCV窗口
-    ui.statusBar->showMessage(tr("dataarray2image complete!"), 3000);
+    ui.statusBar->showMessage(tr("dataarray2image complete!"), 2000);
 }
 ///packed_end*****************packed_end
 //toolbar setting
@@ -3573,6 +3692,9 @@ void Qt_segy_process::show_version_info() {
 void Qt_segy_process::closeVersionInfo() {
     widget_info->close();
 }
+//多线程
+
+
 ///完成封装
 //data1d_2chartview 一维数据转图表
 //data2d2image二维数据转图像

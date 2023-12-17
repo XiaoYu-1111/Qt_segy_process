@@ -16,6 +16,8 @@
 #include<QString>
 #include<qslider.h>
 #include<qdialog.h>
+#include <QThread>
+#include <QObject>
 
 #include<qimageiohandler.h>
 #include<qstackedwidget.h>
@@ -41,7 +43,11 @@
 #include<QProgressBar>
 
 #include <QtDataVisualization>
+#include<cmath>
 #include <vector>
+#include <numeric>
+#include <complex>
+#include <algorithm> 
 #include <QRandomGenerator>
 
 #include<QAudioDevice>
@@ -145,8 +151,7 @@ public://公共成员segy
 
     QWidget* widget_stockwell_fun;
     QImage * qtImage2;
-    QPushButton* stack_save;//stockwell save
-    QPushButton* stack_close;
+    
 
     int lowThreshold = 50;  // 默认低阈值
     int highThreshold = 100; // 默认高阈值
@@ -154,10 +159,22 @@ public://公共成员segy
     QSlider* highThresholdSlider;
 
     QSpinBox* dft_trace_i;
+    QSpinBox* StockTF_trace_i;
+
     std::vector<float> trace_i_data_dft_real;
 
     QSpinBox* header_samplerate;//全局采样率
-
+    QSpinBox* freqlow_st;
+    QSpinBox* freqhigh_st;
+    QSpinBox* alpha_st;
+    QPushButton* stack_save;//stockwell save
+    QPushButton* stack_close;
+    /*std::vector<vector<complex<double>>> data_s;*/
+    std::vector<double> signal_st_i;//存储单道数据空间
+    std::vector<double> t;// 存储生成时间序列t
+    QChart* chart_s_data;
+    QSplineSeries* series_stock;
+    
 
 public slots://segy数据槽函数
 
@@ -214,9 +231,11 @@ public slots://segy数据槽函数
     void STOCK_function();
     std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
         double freqlow, double freqhigh, double alpha);
+    void calculate_st_main();
     void  save_stacked_data();
     void  close_stackwindow();
     void  save_stackimage();
+    
     //静态曲线
     void drawcurve();
     void draw_dynamic_curve();
@@ -266,3 +285,5 @@ public slots:
 private:
     Ui::Qt_segy_processClass ui;
 };
+
+
