@@ -57,6 +57,7 @@
 #include<QAudioSink>
 #include <QAudioFormat>
 
+
 #include"xyseriesiodevice.h"
 
 class XYSeriesIODevice;
@@ -159,10 +160,16 @@ public://公共成员segy
     QSlider* highThresholdSlider;
 
     QSpinBox* dft_trace_i;
+    QSpinBox* dft_trace_sample;
     QSpinBox* StockTF_trace_i;
+    QSpinBox* StockTF_trace_samplerate;
 
     std::vector<float> trace_i_data_dft_real;
+    std::vector<float> trace_i_data_idft_real;//逆变换结果
+    std::vector<std::complex<float>> trace_i_data_dft_result;
 
+    std::vector<float>opencv_fft_1d_Ampli;//opencv_fft_1d幅值数据
+    //STft
     QSpinBox* header_samplerate;//全局采样率
     QSpinBox* freqlow_st;
     QSpinBox* freqhigh_st;
@@ -174,7 +181,26 @@ public://公共成员segy
     std::vector<double> t;// 存储生成时间序列t
     QChart* chart_s_data;
     QSplineSeries* series_stock;
-    
+    QProgressBar* progress_bar;
+    //CWT
+    std::vector<double> signal_cwt_i;//存储单道数据空间
+    QSpinBox* cwt_trace_i;
+
+    //stft
+    std::vector<double>signal_stft_i;
+    QSpinBox* stft_trace_i;
+    QSpinBox* stft_windows_size;
+    QSpinBox* stft_hop_length;
+    QSplineSeries* series_stft;
+
+    //filter  1d
+    QSpinBox* filter1d_tracei;
+
+    QSpinBox* kernelsize_filter1d;
+    std::vector<double> signal_filter1d_tracei;
+    QSplineSeries* series_signal_filter1d;
+    QSplineSeries* filter1d_signal_result;
+    QComboBox* ComboBox_filter1d_type;
 
 public slots://segy数据槽函数
 
@@ -205,11 +231,10 @@ public slots://segy数据槽函数
     void dataArrayAGC();//AGC部分
     std::vector<std::vector<float>> Exc_min(std::vector<std::vector<float>> matrix);//切除极小值
     void opencv_fft_1d();//计算fft，opencv中自带
-
+    void save_opencv_dft_i_real();
     std::vector<std::complex<float>> discrete_fourier_transform(const std::vector<float> x);
     std::vector<std::vector<float>> opencv_fft_1d(std::vector<std::vector<float>> matrix, int tracei, int sampling);//计算fft，opencv中自带
     void opencv_fft2d();//多道数据fft
-
     void chart_fftshow();//测试chart
 
     void matrix_table_show();
@@ -226,8 +251,13 @@ public slots://segy数据槽函数
     void agcdata2dataarray();//将当前默认数据更换为agc数据
     void get_orignal_real();//获取实际数据data_real
     void csvdata2dataarray();//csv数据转dataarray
-    
-    //S变换
+
+    //图像格式转换
+    cv::Mat QImage2Mat(const QImage& image);
+    QImage Mat2QImage(const cv::Mat& mat);
+    void drawAxes(QImage& image);
+    ///时频分析部分
+    //part1——S变换
     void STOCK_function();
     std::vector<std::vector<std::complex<double>>> myst(const std::vector<double> t, const std::vector<double> Sig,
         double freqlow, double freqhigh, double alpha);
@@ -235,7 +265,18 @@ public slots://segy数据槽函数
     void  save_stacked_data();
     void  close_stackwindow();
     void  save_stackimage();
-    
+    //part2-CWT
+    void CWT_function();
+    void CWT_calcualte();
+    //part3-STFT
+    void STFT_function();
+    double abs(std::complex<double> z);
+    void calculate_stft_main();
+    std::vector<std::vector<std::complex<double>>> stft(const std::vector<double> signal,
+        int window_size, int hop_length,
+        const std::vector<double> window_fn);
+
+    //
     //静态曲线
     void drawcurve();
     void draw_dynamic_curve();
@@ -250,18 +291,28 @@ public slots://segy数据槽函数
     void data1d_2chartview(std::vector<float> data);
 
     //page2_center
-    void filter_1d_widget();
+    void cvdft_1d_widget();
     void update_partsegydata();
+    void updata_opencv_fft_1d();
     void updateLowThreshold_row(int value);
     void updateHighThreshold_col(int value);
-
+    //傅里叶变换
     void DFT_custom_1d_widget();
     void display_dft_chart_window();
     void save_trace_i_dft_real();
     void save_1d_data(std::vector<float> data_1d);
     void save_2d_data(std::vector<std::vector<float>> data_2d);
+    //傅里叶逆变换
+    void IDFT_custom_1d_widget();
+    void display_idft_chart_window();
+    std::vector<std::complex<float>> inverse_discrete_fourier_transform(const std::vector<float> x);
+
     //page2_right
     void Filter_widget();
+    void filter1d_process();
+    void save_filter1d_data();
+
+    std::vector<double> medianFilter(std::vector<double> inputSignal, int kernelSize);
     //page4
     //3d
     void draw3DData();
@@ -277,6 +328,11 @@ public slots:
     //setting
     void setting_header();
     void confirm_header();
+
+    void stylesheet_change_1();
+    void stylesheet_change_2();
+    void changeAllStyles_widget();
+    void changeAllStyles(QWidget* widget, const QString& newStyle);
     //version
     void show_version_info();//显示版本信息
     void closeVersionInfo();
