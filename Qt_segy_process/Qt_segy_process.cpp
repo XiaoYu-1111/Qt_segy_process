@@ -292,7 +292,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page1_widget1_layout->addWidget(textEdit1);
     textEdit1->setPlainText("version_1.0,author by rain!");
     ///dockwidget窗口
-    QDockWidget* dockWidget1 = new QDockWidget("Dock");
+    dockWidget1 = new QDockWidget("Dock");
     dockWidget1->setStyleSheet(style1.dock_widget);
     dockWidget1->setMinimumWidth(50);
     dockWidget1->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
@@ -492,7 +492,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(AGC_single, SIGNAL(clicked()), this, SLOT(trace_i_agc()));
     ///fft1
     connect(button_fft, SIGNAL(clicked()), this, SLOT(opencv_fft_1d()));//一维傅里叶变换
-    connect(button_fft_2d, SIGNAL(clicked()), this, SLOT(opencv_fft2d()));//一维傅里叶变换
+    connect(button_fft_2d, SIGNAL(clicked()), this, SLOT(opencv_fft2d()));//二维傅里叶变换
     connect(button_fft_show, SIGNAL(clicked()), this, SLOT(chart_fftshow()));
     ///SF_function
     connect(button_ST, SIGNAL(clicked()), this, SLOT(STOCK_function()));
@@ -531,11 +531,23 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     IDFT_custom_1d->setMaximumSize(200, 50);
     IDFT_custom_1d->setStyleSheet(style1.button_main);
     page2_center_widget2_layout->addWidget(IDFT_custom_1d);
+    //第三层
+    QWidget* page2_center_widget3 = new QWidget();
+    page2_center_widget3->setMaximumHeight(100);
+    QHBoxLayout* page2_center_widget3_layout = new QHBoxLayout(page2_center_widget3);
+    QPushButton* button_FFT2 = new QPushButton("FFT2");//逆变换按钮
+    button_FFT2->setToolTip("<html><font size='5' color='lightgreen'>fft2-fk!</font></html>");
+    button_FFT2->setMaximumSize(200, 50);
+    button_FFT2->setStyleSheet(style1.button_main);
+    page2_center_widget3_layout->addWidget(button_FFT2);
+    page2_center_layout->addWidget(page2_center_widget3);//窗口添加进层
+
+
     //slot
     connect(dft_opencv, SIGNAL(clicked()), this, SLOT(cvdft_1d_widget()));//opencv-dft
     connect(DFT_custom_1d, SIGNAL(clicked()), this, SLOT(DFT_custom_1d_widget()));//一维DFT
     connect(IDFT_custom_1d, SIGNAL(clicked()), this, SLOT(IDFT_custom_1d_widget()));//逆一维DFT
-
+    connect(button_FFT2, SIGNAL(clicked()), this, SLOT(FFT2_FK()));//逆一维DFT
     ///page2_right
     QLabel* page2_label_right = new QLabel("right splitter");
     page2_label_right->setMaximumSize(200, 50);
@@ -822,6 +834,10 @@ void Qt_segy_process::show_segy() {
     stylesheet_QT style2;
     ui.statusBar->setStyleSheet(style2.styleSheet_bar); 
     label_picture->setStyleSheet(style2.widget_gray2);
+
+    ui.mainToolBar->show();//此处运行显示dock窗口页面。
+    dockWidget1->show();
+
 }
 //save
 void  Qt_segy_process::save_segy() {
@@ -1825,14 +1841,20 @@ std::vector<std::vector<float>> Qt_segy_process::opencv_fft_1d(std::vector<std::
 std::vector<std::complex<float>> Qt_segy_process::discrete_fourier_transform(const std::vector<float> x) {
     int N = x.size();
     std::vector<std::complex<float>> X(N, std::complex<float>(0.0f, 0.0f));//存储计算结果
-
+    
     for (int k = 0; k < N; ++k) {
+        float angle_factor = -2.0f * M_PI * k / N; // 频率因子
+        std::complex<float> sum(0.0f, 0.0f);
         for (int n = 0; n < N; ++n) {
-            X[k] += std::polar<float>(1.0, -2.0f * M_PI * k * n / N) * x[n];//(-i*2*pi*f*t)*xi
+            float angle = angle_factor * n; // 频率因子 * 时间点
+            std::complex<float> exp_term = std::polar<float>(1.0, angle);
+            sum += exp_term * x[n];
         }
+        X[k] = sum;
     } 
     return X;
 }
+//反傅里叶变换
 std::vector<std::complex<float>> Qt_segy_process::inverse_discrete_fourier_transform(const std::vector<float> x) {
     int N = x.size();
     std::vector<std::complex<float>> X(N, std::complex<float>(0.0f, 0.0f));//存储计算结果
@@ -1844,7 +1866,6 @@ std::vector<std::complex<float>> Qt_segy_process::inverse_discrete_fourier_trans
     }
     return X;
 }
-
 //计算二维数据的频谱并显示
 void Qt_segy_process::opencv_fft2d() {
     if (dataArray_real.empty()) {//先判断数据是否初始化
@@ -2766,7 +2787,7 @@ void Qt_segy_process::STFT_function() {
     ///slot
     connect(STFT_button, SIGNAL(clicked()), this, SLOT(calculate_stft_main()));
 }
-
+//stft计算主体
 void Qt_segy_process::calculate_stft_main() {
 
 
@@ -2813,6 +2834,7 @@ void Qt_segy_process::calculate_stft_main() {
 double Qt_segy_process::abs(std::complex<double> z) {//返回复数的模长
     return std::sqrt(z.real() * z.real() + z.imag() * z.imag());
 }
+//stft函数
 std::vector<std::vector<std::complex<double>>> Qt_segy_process::stft(const std::vector<double> signal, int window_size, int hop_length, const std::vector<double> window_fn) {
     const double PI = 3.14159265358979323846;
     // 计算频率轴上的分辨率
@@ -2832,6 +2854,7 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::stft(const std::
     progress_bar->setRange(0, 100); // 设置进度条的范围为0到100
     progress_bar->show();
     for (int i = 0; i < num_frames; ++i) {
+        QApplication::processEvents();
         progressValue = (i+1) * 100 / num_frames; // 计算整数进度值
         progress_bar->setValue(progressValue);
         qDebug() << progressValue;//输出窗口显示处理进度
@@ -2857,7 +2880,6 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::stft(const std::
     return result;
 
 }
-
 //绘制曲线
 void Qt_segy_process::drawcurve()
 {
@@ -3309,13 +3331,14 @@ void Qt_segy_process::display_dft_chart_window() {
         trace_i_data.push_back(temp[i][dft_trace_i->value()]);//得到一维向量data
     }
     trace_i_data_dft_result = discrete_fourier_transform(trace_i_data);
-    trace_i_data_dft_real.clear();
+    
     for (int i = 0; i <= trace_i_data_dft_result.size()/2; i++)//获取一半数据，数据是对称共轭的。 
     {
         trace_i_data_dft_real.push_back(std::abs(trace_i_data_dft_result[i].real()));
     }
     data1d_2chartview(trace_i_data);
-    data1d_2chartview(trace_i_data_dft_real);
+    data1d_2chartview(trace_i_data_dft_real);//傅里叶比那换结果
+    trace_i_data_dft_real.clear();
 }
 void Qt_segy_process::save_trace_i_dft_real() {
     save_1d_data(trace_i_data_dft_real);
@@ -3393,6 +3416,65 @@ void Qt_segy_process::display_idft_chart_window() {
 
     data1d_2chartview(trace_i_idata2);
 }
+void Qt_segy_process::FFT2_FK() { 
+
+    if (dataArray_real.empty()) {//计算得到dft数据
+        qDebug() << "data is empty. Make sure to load data first!";
+        ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
+        return;//返回默认vector
+    }
+    std::vector<std::vector<float>> step_t;
+    std::vector<std::vector<float>> step_x;
+    step_t = FFT2_FK_t((dataArray_real));
+    data2d2image(step_t);
+    step_x = FFT2_FK_t(transposeMatrix(step_t));
+    data2d2image(transposeMatrix(step_x));
+}
+std::vector<std::vector<float>> Qt_segy_process::FFT2_FK_t(std::vector<std::vector<float>> data_2d) {
+
+    std::vector<std::vector<float>> temp = data_2d;
+    temp = transposeMatrix(temp); // Assuming transposeMatrix is properly implemented
+    std::vector<float> trace_i_data;
+    std::vector<std::complex<float>> trace_i_data_fft2;
+    std::vector<std::vector<std::complex<float>>> fft2;
+    std::vector<std::vector<float>> fft2_real(temp[0].size(), std::vector<float>(temp.size(), 0.0)); // Resize fft2_real
+
+    stylesheet_QT style_bar;
+    int progressValue;
+    progress_bar = new QProgressBar();//设置进度条
+    progress_bar->setMinimumSize(800, 100);
+    progress_bar->setWindowTitle("Qt_segy_process::myst progress");
+    progress_bar->setStyleSheet(style_bar.style_bar);
+    progress_bar->setRange(0, 100); // 设置进度条的范围为0到100
+    progress_bar->show();
+    for (int j = 0; j < temp[0].size(); ++j) { // Loop through each channel
+        //
+        QApplication::processEvents();
+        progressValue = (j + 1) * 100 / temp[0].size(); // 计算整数进度值
+        progress_bar->setValue(progressValue);
+        qDebug() << progressValue;//输出窗口显示处理进度
+        if (progressValue == 100) {
+            // 进度达到100，隐藏或关闭进度条
+            progress_bar->hide(); // 或 progress->close();
+        }
+        trace_i_data.clear(); // Clear trace_i_data for the next iteration
+        for (int i = 0; i < temp.size(); ++i) { // Loop through each trace
+            trace_i_data.push_back(temp[i][j]);
+        }
+        trace_i_data_fft2 = discrete_fourier_transform(trace_i_data);
+        fft2.push_back(trace_i_data_fft2); 
+    }
+    for (int j = 0; j < temp[0].size(); j++) { // Loop through each channel
+        for (int i = 0; i < temp.size(); i++) {
+            fft2_real[j][i] = std::abs(fft2[j][i].real());
+        }
+    }
+    ui.statusBar->showMessage(tr("%1<->%2").arg(fft2_real.size()).arg(fft2_real[0].size()));
+    QString message = tr("fft2_t%1<->%2").arg(fft2_real.size()).arg(fft2_real[0].size());
+    textEdit1->append(message);
+    return fft2_real;
+}
+
 ///page2_right_widget--------+++++
 //滤波
 void Qt_segy_process::Filter_widget() {
@@ -3629,16 +3711,14 @@ std::vector<double> Qt_segy_process::medianFilter(std::vector<double> inputSigna
         std::vector<double> neighborhood(inputSignal.begin() + startIdx, inputSignal.begin() + endIdx + 1);
 
         // 对邻域进行排序
-        std::sort(neighborhood.begin(), neighborhood.end());
+        std::sort(neighborhood.begin(), neighborhood.end());//排序取中间值，而不是平均数。
 
         // 计算中值并添加到结果中
-        double medianValue = neighborhood[neighborhood.size() / 2];
+        double medianValue = neighborhood[neighborhood.size() / 2];//取中间索引
         resultData.push_back(medianValue);
     }
 
     return resultData;
-
-
 }
 //page3
 //显示数据表格
@@ -3858,7 +3938,6 @@ void Qt_segy_process::WiggleView_show_V() {
     connect(wiggle_dial_2, SIGNAL(valueChanged(int)), this, SLOT(Dial_2_ValueChanged(int)));
     connect(wiggle_dial_3, SIGNAL(valueChanged(int)), this, SLOT(Dial_3_ValueChanged(int)));
     connect(wiggle_dial_4, SIGNAL(valueChanged(int)), this, SLOT(Dial_4_ValueChanged(int)));
-
 }
 //更新回调函数
 void Qt_segy_process::updataWigglePlot() {
@@ -4261,7 +4340,7 @@ void Qt_segy_process::data2d2image(std::vector<std::vector<float>> dataArray) {
     label_widget->setStyleSheet("background-color:#ffffff");
     QVBoxLayout* lable_layout = new QVBoxLayout(label_widget);
 
-    QLabel* label_Xaxis = new QLabel("----------Axis-Time--------->");
+    QLabel* label_Xaxis = new QLabel("---------Axis---------->");
     label_Xaxis->setMaximumHeight(40);
     label_Xaxis->setMinimumWidth(800);
     // 设置字体垂直居中对齐
@@ -4304,6 +4383,7 @@ void Qt_segy_process::drawAxes(QImage& image) {//在图片上绘制西那段，并返回
     // 绘制纵轴
     painter.drawLine(image.width() / 2, 0, image.width() / 2, image.height());
 }
+//Mat转Qimage
 QImage Qt_segy_process::Mat2QImage(const cv::Mat& mat) {
     if (mat.empty()) {
         qDebug() << "Error: Input image is empty";
@@ -4320,6 +4400,7 @@ QImage Qt_segy_process::Mat2QImage(const cv::Mat& mat) {
 
     return image;
 }
+//Qimage转Mat
 cv::Mat Qt_segy_process::QImage2Mat(const QImage& image) {
     cv::Mat mat(image.height(), image.width(), CV_8U);
     uchar* matData = mat.data;

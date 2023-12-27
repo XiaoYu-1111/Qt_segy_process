@@ -90,6 +90,8 @@ public:
     QWidget* page4;
     QWidget* page5;
 
+    QDockWidget* dockWidget1;
+
 public:
     QString  OpenFile_path;
     QString  SaveFile_path;
@@ -306,7 +308,9 @@ public slots://segy数据槽函数
     void IDFT_custom_1d_widget();
     void display_idft_chart_window();
     std::vector<std::complex<float>> inverse_discrete_fourier_transform(const std::vector<float> x);
-
+    //2d傅里叶变换-fk变换
+    void FFT2_FK();
+    std::vector<std::vector<float>> FFT2_FK_t(std::vector<std::vector<float>> data_2d);
     //page2_right
     void Filter_widget();
     void filter1d_process();
