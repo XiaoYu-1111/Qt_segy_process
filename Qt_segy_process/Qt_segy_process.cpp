@@ -547,7 +547,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(dft_opencv, SIGNAL(clicked()), this, SLOT(cvdft_1d_widget()));//opencv-dft
     connect(DFT_custom_1d, SIGNAL(clicked()), this, SLOT(DFT_custom_1d_widget()));//一维DFT
     connect(IDFT_custom_1d, SIGNAL(clicked()), this, SLOT(IDFT_custom_1d_widget()));//逆一维DFT
-    connect(button_FFT2, SIGNAL(clicked()), this, SLOT(FFT2_FK()));//逆一维DFT
+    connect(button_FFT2, SIGNAL(clicked()), this, SLOT(FFT2_FK_widget()));//fft2d-fk
     ///page2_right
     QLabel* page2_label_right = new QLabel("right splitter");
     page2_label_right->setMaximumSize(200, 50);
@@ -3416,6 +3416,42 @@ void Qt_segy_process::display_idft_chart_window() {
 
     data1d_2chartview(trace_i_idata2);
 }
+
+void Qt_segy_process::FFT2_FK_widget() {
+    stylesheet_QT style;
+    QWidget* fft_fk_widget = new QWidget();
+    QVBoxLayout* fft_fk_widget_layout = new QVBoxLayout(fft_fk_widget);
+    fft_fk_widget->setMinimumSize(600, 400);
+    fft_fk_widget->setStyleSheet(style.widget_gray1);
+    fft_fk_widget->setWindowTitle("DFT_custom_1d!");
+    QLabel* info_label = new QLabel("Hello! Welcom to fft2d-fk widget");
+    info_label->setMaximumSize(600, 50);
+    info_label->setAlignment(Qt::AlignCenter);
+    info_label->setStyleSheet(style.label1);
+
+    QPushButton* refresh = new QPushButton("fft2d-FK-T");
+    refresh->setFixedSize(200, 50);
+    refresh->setStyleSheet(style.button_main);
+
+    QPushButton* Save = new QPushButton("Save");
+    Save->setFixedSize(200, 50);
+    Save->setStyleSheet(style.button_main);
+
+    QPushButton* Close_button = new QPushButton("Close");
+    Close_button->setFixedSize(200, 50);
+    Close_button->setStyleSheet(style.button_main);
+
+    fft_fk_widget_layout->addWidget(info_label, 0, Qt::AlignHCenter);
+    fft_fk_widget_layout->addWidget(refresh, 0, Qt::AlignHCenter);
+    fft_fk_widget_layout->addWidget(Save, 0, Qt::AlignHCenter);
+    fft_fk_widget_layout->addWidget(Close_button, 0, Qt::AlignHCenter);
+    fft_fk_widget->show();
+    connect(refresh, SIGNAL(clicked()), this, SLOT(FFT2_FK()));
+    connect(Close_button, SIGNAL(clicked()), fft_fk_widget, SLOT(close()));
+    connect(Save, SIGNAL(clicked()), this, SLOT(FFT2_FK_save()));
+
+}
+//fk-main
 void Qt_segy_process::FFT2_FK() { 
 
     if (dataArray_real.empty()) {//计算得到dft数据
@@ -3429,7 +3465,9 @@ void Qt_segy_process::FFT2_FK() {
     data2d2image(step_t);
     step_x = FFT2_FK_t(transposeMatrix(step_t));
     data2d2image(transposeMatrix(step_x));
+    FFT2_FK_data = step_t;
 }
+//run-fk
 std::vector<std::vector<float>> Qt_segy_process::FFT2_FK_t(std::vector<std::vector<float>> data_2d) {
 
     std::vector<std::vector<float>> temp = data_2d;
@@ -3437,8 +3475,7 @@ std::vector<std::vector<float>> Qt_segy_process::FFT2_FK_t(std::vector<std::vect
     std::vector<float> trace_i_data;
     std::vector<std::complex<float>> trace_i_data_fft2;
     std::vector<std::vector<std::complex<float>>> fft2;
-    std::vector<std::vector<float>> fft2_real(temp[0].size(), std::vector<float>(temp.size(), 0.0)); // Resize fft2_real
-
+    std::vector<std::vector<float>> fft2_real(temp[0].size(), std::vector<float>(temp.size(), 0.0));
     stylesheet_QT style_bar;
     int progressValue;
     progress_bar = new QProgressBar();//设置进度条
@@ -3447,7 +3484,7 @@ std::vector<std::vector<float>> Qt_segy_process::FFT2_FK_t(std::vector<std::vect
     progress_bar->setStyleSheet(style_bar.style_bar);
     progress_bar->setRange(0, 100); // 设置进度条的范围为0到100
     progress_bar->show();
-    for (int j = 0; j < temp[0].size(); ++j) { // Loop through each channel
+    for (int j = 0; j < temp[0].size(); j++) { // Loop through each channel
         //
         QApplication::processEvents();
         progressValue = (j + 1) * 100 / temp[0].size(); // 计算整数进度值
@@ -3458,14 +3495,14 @@ std::vector<std::vector<float>> Qt_segy_process::FFT2_FK_t(std::vector<std::vect
             progress_bar->hide(); // 或 progress->close();
         }
         trace_i_data.clear(); // Clear trace_i_data for the next iteration
-        for (int i = 0; i < temp.size(); ++i) { // Loop through each trace
+        for (int i = 0; i < temp.size(); i++) { // Loop through each trace
             trace_i_data.push_back(temp[i][j]);
         }
         trace_i_data_fft2 = discrete_fourier_transform(trace_i_data);
         fft2.push_back(trace_i_data_fft2); 
     }
-    for (int j = 0; j < temp[0].size(); j++) { // Loop through each channel
-        for (int i = 0; i < temp.size(); i++) {
+    for (int j = 0; j < temp[0].size(); ++j) { // Loop through each channel
+        for (int i = 0; i < temp.size(); ++i) {
             fft2_real[j][i] = std::abs(fft2[j][i].real());
         }
     }
@@ -3474,7 +3511,11 @@ std::vector<std::vector<float>> Qt_segy_process::FFT2_FK_t(std::vector<std::vect
     textEdit1->append(message);
     return fft2_real;
 }
-
+//save fk
+void Qt_segy_process::FFT2_FK_save() {
+    save_2d_data(FFT2_FK_data);
+    
+}
 ///page2_right_widget--------+++++
 //滤波
 void Qt_segy_process::Filter_widget() {

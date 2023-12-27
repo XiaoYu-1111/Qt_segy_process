@@ -204,6 +204,9 @@ public://公共成员segy
     QSplineSeries* filter1d_signal_result;
     QComboBox* ComboBox_filter1d_type;
 
+    //fft2d-fk
+    std::vector<std::vector<float>> FFT2_FK_data;
+
 public slots://segy数据槽函数
 
     void open_segy();
@@ -310,7 +313,10 @@ public slots://segy数据槽函数
     std::vector<std::complex<float>> inverse_discrete_fourier_transform(const std::vector<float> x);
     //2d傅里叶变换-fk变换
     void FFT2_FK();
+    void FFT2_FK_widget();
     std::vector<std::vector<float>> FFT2_FK_t(std::vector<std::vector<float>> data_2d);
+    void FFT2_FK_save();
+    
     //page2_right
     void Filter_widget();
     void filter1d_process();
