@@ -310,7 +310,7 @@ public slots://segy数据槽函数
     //傅里叶逆变换
     void IDFT_custom_1d_widget();
     void display_idft_chart_window();
-    std::vector<std::complex<float>> inverse_discrete_fourier_transform(const std::vector<float> x);
+    std::vector<float> inverse_discrete_fourier_transform(std::vector<std::complex<float>> x);
     //2d傅里叶变换-fk变换
     void FFT2_FK();
     void FFT2_FK_widget();
@@ -327,6 +327,9 @@ public slots://segy数据槽函数
     //3d
     void draw3DData();
     void draw3Dsurface();
+
+    //syn_widget
+    void Syn_widget();
 
 
 public:

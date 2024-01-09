@@ -124,7 +124,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     right_layout->addWidget(Page4_button);
 
     QPushButton* Page5_button = new QPushButton("page5");//open
-    Page5_button->setText(QString::fromLocal8Bit("Tab页面"));
+    Page5_button->setText(QString::fromLocal8Bit("页面5"));
     Page5_button->setStyleSheet(style1.button_main);
     Page5_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page5_button);
@@ -170,10 +170,12 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     QFont menuFont;
     menuFont.setPointSize(15); // Set the desired font size
     QAction* myAction1 = new QAction("Main", this);//主动作行为
+    myAction1->setText(QString::fromLocal8Bit("主页"));
     // 创建下拉菜单并添加格子选项
     QMenu* myMenu = new QMenu(this);//一号菜单
     QMenu* myMenu2 = new QMenu(this);//二号菜单
     QAction* option1Action = new QAction("Open file", this);//一号菜单action
+    option1Action->setText(QString::fromLocal8Bit("打开文件"));
     myMenu->addAction(option1Action);
     QAction* open_segy = new QAction("open_segy", this);//子菜单
     QAction* show_data = new QAction("show data", this);//子菜单
@@ -197,6 +199,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(open_csv_action, SIGNAL(triggered()), this, SLOT(open_csv()));
     //part data change//part2
     QAction* myAction_datachange = new QAction("Data", this);
+    myAction_datachange->setText(QString::fromLocal8Bit("内容"));
     QMenu* datachange_menu = new QMenu(this);
     QAction* option1_agcdata2dataarray = new QAction("Agc2data", this);
     QAction* option1_get_realdata = new QAction("Get_realdata", this);
@@ -213,6 +216,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     ui.mainToolBar->setStyleSheet(style1.tool_bar);
     //part view
     QAction* Action_View = new QAction("View", this);//创建View页面入口
+    Action_View->setText(QString::fromLocal8Bit("显示"));
     QMenu* myMenu_View = new QMenu(this);//创建View菜单
     QAction* View_vwiggle = new QAction("View_Vwiggle", this);
     QAction* View_add = new QAction("view_other", this);
@@ -227,6 +231,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
 
     //part setting
     QAction* Action_Setting = new QAction("Setting", this);//创建Setting页面入口
+    Action_Setting->setText(QString::fromLocal8Bit("设置"));
     QMenu* myMenu_Setting = new QMenu(this);//创建Setting菜单
     QAction* Setting_header = new QAction("Setting_header", this);
     QAction* Setting_stylesheet = new QAction("Setting_stylesheet", this);
@@ -245,6 +250,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
 
     //part_version
     QAction* myAction2 = new QAction("version", this);//创建version页面入口
+    myAction2->setText(QString::fromLocal8Bit("版本"));
     QMenu* myMenu_version = new QMenu(this);//创建version菜单
     QAction* version_info = new QAction("version_info", this);
     myMenu_version->addAction(version_info);
@@ -338,6 +344,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget4->setMaximumHeight(100);
 
     QLabel* page2_label_left = new QLabel("left splitter");
+    page2_label_left->setText(QString::fromLocal8Bit("左窗"));
     page2_label_left->setMaximumSize(200, 50);
     page2_label_left->setStyleSheet(style1.label1);
     page2_label_left->setAlignment(Qt::AlignCenter);
@@ -354,16 +361,19 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget4->setStyleSheet(style1.widget_gray1);
     ///page2_widget1
     QPushButton* AGC_single = new QPushButton("AGC_tracei");//1d
+    AGC_single->setText(QString::fromLocal8Bit("增益1"));
     AGC_single->setStyleSheet(style1.button_15px);
     AGC_single->setMaximumSize(100, 50);
     page2_widget1_layout->addWidget(AGC_single);
 
     QPushButton* button_AGC = new QPushButton("AGC_2D");//2d
+    button_AGC->setText(QString::fromLocal8Bit("增益2"));
     button_AGC->setStyleSheet(style1.button_15px);
     button_AGC->setMaximumSize(100, 50);
     page2_widget1_layout->addWidget(button_AGC);
 
     QLabel* windows_size = new QLabel("windows_size");
+    windows_size->setText(QString::fromLocal8Bit("win-size"));
     windows_size->setMaximumSize(100, 50);
     windows_size->setStyleSheet(style1.label1);
     page2_widget1_layout->addWidget(windows_size);
@@ -378,6 +388,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget1_layout->addWidget(windows_size_value);
 
     QLabel* label_trace_i = new QLabel("trace i");//选择数据道
+    label_trace_i->setText(QString::fromLocal8Bit("trace"));
     label_trace_i->setMaximumSize(100, 50);
     label_trace_i->setStyleSheet(style1.label1);
     page2_widget1_layout->addWidget(label_trace_i);
@@ -392,21 +403,25 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget1_layout->addWidget(agc_trace_i);
 
     QPushButton* AGC_save = new QPushButton("AGC_save");//agc数据保存按钮
+    AGC_save->setText(QString::fromLocal8Bit("保存文件"));
     AGC_save->setStyleSheet(style1.button_15px);
     AGC_save->setMaximumSize(200, 50);
     page2_widget1_layout->addWidget(AGC_save);
     ///page2_widget2
     QPushButton* button_fft = new QPushButton("FFT_1d");//傅里叶变换按钮
+    button_fft->setText(QString::fromLocal8Bit("单道fft"));
     page2_widget3_layout->addWidget(button_fft);
     button_fft->setMaximumSize(200, 50);
     button_fft->setStyleSheet(style1.button_15px);
 
     QPushButton* button_fft_2d = new QPushButton("FFT_2d");
+    button_fft_2d->setText(QString::fromLocal8Bit("多道fft"));
     page2_widget3_layout->addWidget(button_fft_2d);
     button_fft_2d->setMaximumSize(200, 50);
     button_fft_2d->setStyleSheet(style1.button_15px);
 
     QLabel* label_sample_rate = new QLabel("sample_rate");//采样率标签
+    label_sample_rate->setText(QString::fromLocal8Bit("采样率"));
     label_sample_rate->setMaximumSize(100, 50);
     label_sample_rate->setStyleSheet(style1.label1);
     page2_widget3_layout->addWidget(label_sample_rate);
@@ -436,6 +451,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_widget3_layout->addWidget(data_trace_i);
 
     QPushButton* button_fft_show = new QPushButton("FFT_show");
+    button_fft_show->setText(QString::fromLocal8Bit("显示"));
     page2_widget3_layout->addWidget(button_fft_show);
     button_fft_show->setMaximumSize(200, 50);
     button_fft_show->setStyleSheet(style1.button_15px);
@@ -472,16 +488,19 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(button_polarchart2, SIGNAL(clicked()), this, SLOT(PolarChart2()));
     ///page2_widget4
     QPushButton* button_ST = new QPushButton("Stock_well(ST)");
+    button_ST->setText(QString::fromLocal8Bit("标准ST"));
     page2_widget4_layout->addWidget(button_ST);
     button_ST->setMaximumSize(200, 50);
     button_ST->setStyleSheet(style1.button_15px);
 
     QPushButton* button_CWT = new QPushButton("CWT");
+    button_CWT->setText(QString::fromLocal8Bit("小波变换"));
     page2_widget4_layout->addWidget(button_CWT);
     button_CWT->setMaximumSize(200, 50);
     button_CWT->setStyleSheet(style1.button_15px);
 
     QPushButton* button_STFT2 = new QPushButton("STFT");//未连接到槽函数
+    button_STFT2->setText(QString::fromLocal8Bit("短时傅里叶变换"));
     page2_widget4_layout->addWidget(button_STFT2);
     button_STFT2->setMaximumSize(200, 50);
     button_STFT2->setStyleSheet(style1.button_15px);
@@ -501,6 +520,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     
     ///page2_center
     QLabel* page2_label_center = new QLabel("center splitter");
+    page2_label_center->setText(QString::fromLocal8Bit("中间窗"));
     page2_label_center->setMaximumSize(200, 50);
     page2_label_center->setStyleSheet(style1.label1);
     page2_label_center->setAlignment(Qt::AlignCenter);
@@ -511,6 +531,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     QHBoxLayout* page2_center_widget1_layout = new QHBoxLayout(page2_center_widget1);
     page2_center_widget1 -> setStyleSheet(style1.widget_gray1);
     QPushButton* dft_opencv = new QPushButton("DFT-opencv");//filter_1d按钮
+    dft_opencv->setText(QString::fromLocal8Bit("cv傅里叶变换"));
     dft_opencv->setMaximumSize(200, 50);
     dft_opencv->setStyleSheet(style1.button_main);
     page2_center_widget1_layout->addWidget(dft_opencv);
@@ -520,6 +541,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     QHBoxLayout* page2_center_widget2_layout = new QHBoxLayout(page2_center_widget2);
     page2_center_widget2->setStyleSheet(style1.widget_gray1);
     QPushButton* DFT_custom_1d = new QPushButton("DFT_custom");//filter_1d按钮
+    DFT_custom_1d->setText(QString::fromLocal8Bit("离散傅里叶正变换"));
     DFT_custom_1d->setToolTip("<html><font size='5' color='lightgreen'>forward!</font></html>");
     DFT_custom_1d->setMaximumSize(200, 50);
     DFT_custom_1d->setStyleSheet(style1.button_main);
@@ -527,6 +549,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page2_center_layout->addWidget(page2_center_widget2);
 
     QPushButton* IDFT_custom_1d = new QPushButton("IDFT_custom");//逆变换按钮
+    IDFT_custom_1d->setText(QString::fromLocal8Bit("离散傅里叶逆变换"));
     IDFT_custom_1d->setToolTip("<html><font size='5' color='lightgreen'>inverse!</font></html>");
     IDFT_custom_1d->setMaximumSize(200, 50);
     IDFT_custom_1d->setStyleSheet(style1.button_main);
@@ -586,37 +609,44 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page3_right->setStyleSheet(style1.widget_gray1);
     ///page3_left
     QLabel* label_left = new QLabel("left splitter");
+    label_left->setText(QString::fromLocal8Bit("左窗"));
     label_left->setMaximumSize(200, 50);
     label_left->setStyleSheet(style1.label1);
     label_left->setAlignment(Qt::AlignCenter);
     page3_left_layout->addWidget(label_left);
     
     QPushButton* tableWidget = new QPushButton("table");
+    tableWidget->setText(QString::fromLocal8Bit("表格"));
     tableWidget->setMaximumSize(200, 50);
     tableWidget->setStyleSheet(style1.button_main);
     page3_left_layout->addWidget(tableWidget);
     //page3显示wiggle
     QPushButton* wiggle_button_H = new QPushButton("Wiggle_H");
+    wiggle_button_H->setText(QString::fromLocal8Bit("波形-H"));
     wiggle_button_H->setMaximumSize(200, 50);
     wiggle_button_H->setStyleSheet(style1.button_main);
     page3_left_layout->addWidget(wiggle_button_H);
     QPushButton* wiggle_button_V = new QPushButton("Wiggle_V");
+    wiggle_button_V->setText(QString::fromLocal8Bit("波形-V"));
     wiggle_button_V->setMaximumSize(200, 50);
     wiggle_button_V->setStyleSheet(style1.button_main);
     page3_left_layout->addWidget(wiggle_button_V);
     //page3eiggle保存
     QPushButton* Save_Wiggle = new QPushButton("Save_Wiggle");
+    Save_Wiggle->setText(QString::fromLocal8Bit("保存波形"));
     Save_Wiggle->setMaximumSize(200, 50);
     Save_Wiggle->setStyleSheet(style1.button_main);
     page3_left_layout->addWidget(Save_Wiggle);
     ///page3_center
     QLabel* label_center = new QLabel("center splitter");
+    label_center->setText(QString::fromLocal8Bit("中窗"));
     label_center->setMaximumSize(200, 50);
     label_center->setStyleSheet(style1.label1);
     label_center->setAlignment(Qt::AlignCenter);
     page3_center_layout->addWidget(label_center);
     ///page3_right
     QLabel* label_right = new QLabel("right splitter");
+    label_right->setText(QString::fromLocal8Bit("右窗"));
     label_right->setMaximumSize(200, 50);
     label_right->setStyleSheet(style1.label1);
     label_right->setAlignment(Qt::AlignCenter);
@@ -696,6 +726,16 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     page5_tabwidget->setTabEnabled(1, false);
     page5_tabwidget->setTabEnabled(2, true);*///设置页面激活
     //page5_tabwidget->setTabText(0, "hello");//设置tab索引text
+    QVBoxLayout* page5_tabwidget1_layout = new QVBoxLayout(page5_tabwidget1);
+    QPushButton* Syn_button = new QPushButton("Syn-widget");
+    const char* localStr = "褶积合成数据."; 
+    Syn_button->setText(QString::fromLocal8Bit(localStr));
+
+    Syn_button->setMinimumSize(400, 200);
+    Syn_button->setStyleSheet(style1.button_main);
+    page5_tabwidget1_layout->addWidget(Syn_button,0, Qt::AlignHCenter);
+    //slot
+    connect(Syn_button, SIGNAL(clicked()), this, SLOT(Syn_widget()));
 
     page5_layout->addWidget(page5_tabwidget);
 }
@@ -1855,16 +1895,32 @@ std::vector<std::complex<float>> Qt_segy_process::discrete_fourier_transform(con
     return X;
 }
 //反傅里叶变换
-std::vector<std::complex<float>> Qt_segy_process::inverse_discrete_fourier_transform(const std::vector<float> x) {
+std::vector<float> Qt_segy_process::inverse_discrete_fourier_transform(std::vector<std::complex<float>> x) {
+   
     int N = x.size();
+    const double PI = 3.14159265358979323846;
     std::vector<std::complex<float>> X(N, std::complex<float>(0.0f, 0.0f));//存储计算结果
 
-    for (int n = 0; n < N; ++n) {
-        for (int k = 0; k < N; ++k) {
-            X[k] += x[k]*std::polar<float>(1.0, 2.0f * M_PI * k * n / N) ;//(-i*2*pi*f*t)*xi
+    for (int k = 0; k < N; ++k) {
+        float angle_factor = 2.0f * M_PI * k / N; // 频率因子
+        std::complex<float> sum(0.0f, 0.0f);
+        for (int n = 0; n < N; ++n) {
+            float angle = angle_factor * n; // 频率因子 * 时间点
+            std::complex<float> exp_term = std::polar<float>(1.0, angle);
+            sum += exp_term * x[n];
         }
+        X[k] = sum/static_cast<float>(2* PI);
     }
-    return X;
+    std::vector<float> result;
+
+    for (int k = 0; k < N; ++k) {
+
+        result.push_back((X[k].real()));
+    }
+
+
+    return result;
+
 }
 //计算二维数据的频谱并显示
 void Qt_segy_process::opencv_fft2d() {
@@ -2306,6 +2362,7 @@ void Qt_segy_process::STOCK_function() {
     layout_stock->addWidget(chartView_stock);
     //widget_ST
     QPushButton* ST_button = new QPushButton("ST-transform-run");
+    ST_button->setText(QString::fromLocal8Bit("标准S变换"));
     ST_button->setMinimumSize(200, 50);
     ST_button->setMaximumSize(400, 100);
     ST_button->setStyleSheet(style_button.button_main);
@@ -2315,8 +2372,11 @@ void Qt_segy_process::STOCK_function() {
     QWidget* widget_button = new QWidget();
     QHBoxLayout* widget_button_layout = new QHBoxLayout(widget_button);
     stack_save = new QPushButton("ST_save_picture");
+    stack_save->setText(QString::fromLocal8Bit("保存图片"));
     QPushButton* stack_save_data = new QPushButton("ST_save_csv");
+    stack_save_data->setText(QString::fromLocal8Bit("保存文件"));
     stack_close = new QPushButton("ST_close");
+    stack_close->setText(QString::fromLocal8Bit("Close"));
     layout_stock->addWidget(widget_button);
     widget_button_layout->addWidget(stack_save);
     widget_button_layout->addWidget(stack_save_data);
@@ -3391,30 +3451,13 @@ void Qt_segy_process::display_idft_chart_window() {
         ui.statusBar->showMessage(tr("data is empty. Make sure to load data first!"), 3000);
         return;//返回默认vector
     }
-    std::vector<std::vector<float>>temp = dataArray_real;
-    temp = transposeMatrix(temp);//T
-    std::vector<float> trace_i_data;
-    std::vector<std::complex<float>> trace_i_data_dft_result_2;
-    /*std::vector<float> trace_i_data_dft_real;*/
-    for (int i = 0; i < temp.size(); i++)
-    {//获取指定i的单道数据
-        trace_i_data.push_back(temp[i][dft_trace_i->value()]);//得到一维向量data
-    }
+    std::vector<float> signal_real;
+    std::vector<float> signal_abs;
+    std::vector<float> orignal;
 
-    std::vector<float> trace_i_idata;
-    std::vector<float> trace_i_idata2;
-    for (int i = 0; i <= trace_i_data_dft_result.size(); i++)//获取一半数据，数据是对称共轭的。 
-    {
-        trace_i_idata.push_back(std::abs(trace_i_data_dft_result[i].real()));
-    }
-    trace_i_data_dft_result_2 = inverse_discrete_fourier_transform(trace_i_idata);
+    signal_abs = inverse_discrete_fourier_transform(trace_i_data_dft_result);
 
-    for (int i = 0; i <= trace_i_data_dft_result.size(); i++)//获取一半数据，数据是对称共轭的。 
-    {
-        trace_i_idata2.push_back(trace_i_data_dft_result_2[i].real());
-    }
-
-    data1d_2chartview(trace_i_idata2);
+    data1d_2chartview(signal_abs);
 }
 
 void Qt_segy_process::FFT2_FK_widget() {
@@ -3742,15 +3785,12 @@ void Qt_segy_process::save_filter1d_data() {
 std::vector<double> Qt_segy_process::medianFilter(std::vector<double> inputSignal, int kernelSize) {
     std::vector<double> resultData;
     resultData.reserve(inputSignal.size());
-
     for (int i = 0; i < inputSignal.size(); ++i) {
         // 计算邻域的起始和结束索引
         int startIdx = std::max(0, i - kernelSize / 2);
         int endIdx = std::min(static_cast<int>(inputSignal.size()) - 1, i + kernelSize / 2);
-
         // 从邻域中提取数据
         std::vector<double> neighborhood(inputSignal.begin() + startIdx, inputSignal.begin() + endIdx + 1);
-
         // 对邻域进行排序
         std::sort(neighborhood.begin(), neighborhood.end());//排序取中间值，而不是平均数。
 
@@ -3854,7 +3894,7 @@ void Qt_segy_process::WiggleView_show_H() {
     wiggleView->show();
 }
 //wiggle显示地震数据vertical direction
-void Qt_segy_process::WiggleView_show_V() {
+void Qt_segy_process::WiggleView_show_V() {//地震道垂直放置，常规方式
     stylesheet_QT style1;
     ui.statusBar->setStyleSheet(style1.styleSheet_bar);
     std::vector<std::vector<float>> matrix;
@@ -4118,8 +4158,7 @@ void Qt_segy_process::saveWiggle_1() {
         ui.statusBar->setStyleSheet("background-color:red");
     }
 }
-//page4
-//part_left_3d绘图
+//page4//part_left_3d绘图
 void Qt_segy_process::draw3DData() {
     if (dataArray_real.empty()) {//先判断数据是否初始化
         ui.statusBar->showMessage(tr("Data is not initialized, please load the data first."), 3000);
@@ -4222,6 +4261,49 @@ void Qt_segy_process::draw3Dsurface() {
     QString message = "unopen";
     ui.statusBar->showMessage(message);
     
+}
+//page5
+void Qt_segy_process::Syn_widget() {
+
+    QWidget *widget_syn = new QWidget();
+    stylesheet_QT style_info;
+
+    widget_syn->setMinimumSize(600, 400);
+    widget_syn->setStyleSheet(style_info.widget_gray1);
+    widget_syn->setWindowTitle("widget_syn");
+
+    QVBoxLayout* widget_syn_layout = new QVBoxLayout(widget_syn);
+
+    QLabel* info_label = new QLabel("widget_syn");
+    info_label->setFixedSize(600, 50);
+    info_label->setAlignment(Qt::AlignCenter);
+    info_label->setStyleSheet(style_info.label1);
+
+    QWidget* widget_1 = new QWidget();
+    widget_1->setMinimumHeight(200);
+    widget_1->setStyleSheet(style_info.widget_gray1);
+    QVBoxLayout* widget_1_layout = new QVBoxLayout(widget_1);
+
+
+
+    widget_syn_layout->addWidget(info_label, 0, Qt::AlignHCenter);
+    widget_syn_layout->addWidget(widget_1);
+
+
+    QPushButton*info_close = new QPushButton("close");
+    info_close->setMinimumSize(100, 30);
+    info_close->setMaximumSize(160, 50);
+    info_close->setStyleSheet(style_info.button_main);
+
+    widget_syn_layout->addWidget(info_close, 0, Qt::AlignHCenter);
+    widget_syn->show();
+    //状态栏变化
+    ui.statusBar->setStyleSheet(style_info.styleSheet_bar);
+    QString message = QString("The window has opened.Information has been shown");
+    ui.statusBar->showMessage(message);
+    ///slot
+    connect(info_close, SIGNAL(clicked()), widget_syn, SLOT(close()));//槽函数内部实现关闭;
+
 }
 ///packed_start*****************packed_start
 //对保存一维数据函数进行封装
@@ -4555,10 +4637,12 @@ void Qt_segy_process::changeAllStyles_widget() {
     QWidget* header_sample_widget = new QWidget();
     QHBoxLayout* header_sample_widget_layout = new QHBoxLayout(header_sample_widget);
     QPushButton* button1 = new QPushButton("color1");
+    button1->setText(QString::fromLocal8Bit("深色"));
     button1->setMaximumSize(600, 50);
     button1->setStyleSheet(style_setting.button_main);
 
     QPushButton* button2 = new QPushButton("color2");
+    button2->setText(QString::fromLocal8Bit("浅色"));
     button2->setMaximumSize(600, 50);
     button2->setStyleSheet(style_setting.button_main);
 
@@ -4566,6 +4650,7 @@ void Qt_segy_process::changeAllStyles_widget() {
     header_sample_widget_layout->addWidget(button2, Qt::AlignHCenter);
 
     QPushButton* button_close = new QPushButton("close");
+    button_close->setText(QString::fromLocal8Bit("Close"));
     button_close->setMaximumSize(600, 50);
     button_close->setStyleSheet(style_setting.button_main);
 
@@ -4637,7 +4722,6 @@ void Qt_segy_process::show_version_info() {
     ui.statusBar->setStyleSheet(style_info.styleSheet_bar);
     QString message = QString("The window has opened.Information has been shown");
     ui.statusBar->showMessage(message);
-
     ///slot
     connect(info_close, SIGNAL(clicked()), this, SLOT(closeVersionInfo()));//槽函数内部实现关闭;
 }
@@ -4948,7 +5032,6 @@ void Qt_segy_process::closeVersionInfo() {
 //
 //    axisX->setRange(0, s.size());
 //    axisY->setRange(min, max);
-
 ///炫酷标签
 //QString widget_gray1 = "Seis Data<br>Processing";
 //QString widget_gray2 = "<span style='color:#94a3b8;font-size: 15pt;font-weight: normal;font-style:normal'>"
@@ -4958,3 +5041,23 @@ void Qt_segy_process::closeVersionInfo() {
 //QString combinedText = widget_gray1 + "<br>" + widget_gray2;
 //label_picture->setStyleSheet(style1.label_main);
 //label_picture->setText(QString("<html>%1</html>").arg(combinedText));
+///提取邻域数据计算signal+kernelsize
+//std::vector<double> Qt_segy_process::medianFilter(std::vector<double> inputSignal, int kernelSize) {
+//    std::vector<double> resultData;
+//    resultData.reserve(inputSignal.size());
+//    for (int i = 0; i < inputSignal.size(); ++i) {
+//        // 计算邻域的起始和结束索引
+//        int startIdx = std::max(0, i - kernelSize / 2);
+//        int endIdx = std::min(static_cast<int>(inputSignal.size()) - 1, i + kernelSize / 2);
+//        // 从邻域中提取数据
+//        std::vector<double> neighborhood(inputSignal.begin() + startIdx, inputSignal.begin() + endIdx + 1);
+//        // 对邻域进行排序
+//        std::sort(neighborhood.begin(), neighborhood.end());//排序取中间值，而不是平均数。
+//
+//        // 计算中值并添加到结果中
+//        double medianValue = neighborhood[neighborhood.size() / 2];//取中间索引
+//        resultData.push_back(medianValue);
+//    }
+//
+//    return resultData;
+//}
