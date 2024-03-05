@@ -55,6 +55,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     main_center_Widget->setMinimumWidth(400);
     main_right_Widget->setMinimumWidth(150);
     main_right_Widget->setMaximumWidth(200);
+#pragma region //左侧窗口
     //左侧窗口
     QVBoxLayout* left_layout = new QVBoxLayout(main_left_Widget);
 
@@ -96,6 +97,8 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     save_button->setStyleSheet(style1.button_main);
     save_button->setMinimumSize(80, 40);
     left_layout->addWidget(save_button);
+#pragma endregion
+#pragma region //右侧窗口
     //右侧窗口
     QVBoxLayout* right_layout = new QVBoxLayout(main_right_Widget);
 
@@ -128,7 +131,8 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     Page5_button->setStyleSheet(style1.button_main);
     Page5_button->setMinimumSize(80, 40);
     right_layout->addWidget(Page5_button);
-
+#pragma endregion
+#pragma region //中间窗口
     //中间页面
     QVBoxLayout* center_layout = new QVBoxLayout(main_center_Widget);
 
@@ -164,9 +168,10 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     connect(Page3_button, SIGNAL(clicked()), this, SLOT(on_stackpage3_change_clicked()));// 切换到第三页
     connect(Page4_button, SIGNAL(clicked()), this, SLOT(on_stackpage4_change_clicked()));// 切换到第四页
     connect(Page5_button, SIGNAL(clicked()), this, SLOT(on_stackpage5_change_clicked()));
-    
+#pragma endregion
     ///toolbar部分
     //part1
+    ui.mainToolBar->setWindowTitle("My Main Toolbar");
     QFont menuFont;
     menuFont.setPointSize(15); // Set the desired font size
     QAction* myAction1 = new QAction("Main", this);//主动作行为
@@ -755,7 +760,13 @@ void Qt_segy_process::main_page() {
     label_picture->setText(QString("<html>%1</html>").arg(combinedText));
     label_picture->setAlignment(Qt::AlignCenter);
     page1->setStyleSheet(style1.widget_gray1);
-
+    //for (QObject* obj : this->children()) {//显示所有QDockWidget
+    //    if (QDockWidget* dockWidget = qobject_cast<QDockWidget*>(obj)) {
+    //        dockWidget->show();
+    //    }
+    //}
+    ui.mainToolBar->show();//工具栏显示
+    ui.mainToolBar->setWindowTitle("My Main Toolbar");
 }
 
 void Qt_segy_process::on_stackpage1_change_clicked()//按钮点击切换到第一页槽函数内容
@@ -764,6 +775,12 @@ void Qt_segy_process::on_stackpage1_change_clicked()//按钮点击切换到第一页槽函数
     ui.statusBar->showMessage(" Page1-->", 5000);
     stylesheet_QT style1;
     ui.statusBar->setStyleSheet(style1.styleSheet_bar);
+    //for (QObject* obj : this->children()) {//显示所有QDockWidget
+    //    if (QDockWidget* dockWidget = qobject_cast<QDockWidget*>(obj)) {
+    //        dockWidget->show();
+    //    }
+    //}
+    ui.mainToolBar->show();//工具栏显示
 }
 void Qt_segy_process::on_stackpage2_change_clicked()//按钮点击切换到第二页槽函数内容
 {
@@ -2240,6 +2257,7 @@ void Qt_segy_process::STOCK_function() {
         return;
     }
     widget_stockwell_fun = new QWidget();//建立显示窗口
+    //widget_stockwell_fun->setWindowFlags(Qt::WindowStaysOnTopHint);//通过flag允许始终在其他窗口上方
     widget_stockwell_fun->setMinimumSize(800, 600);
     stylesheet_QT style_button;
     widget_stockwell_fun->setStyleSheet(style_button.widget_gray1);
@@ -2455,7 +2473,7 @@ void Qt_segy_process::calculate_st_main() {
     //cv::destroyAllWindows(); // 关闭所有OpenCV窗口
     data2d2image(transposeMatrix(temp));//调用函数直接显示
 }
-//计算主程序
+//计算s变换主程序
 std::vector<std::vector<std::complex<double>>> Qt_segy_process::myst(const std::vector<double> t, const std::vector<double> Sig,
     double freqlow, double freqhigh, double alpha) {
     const double PI = 3.14159265358979323846;
@@ -2904,7 +2922,6 @@ std::vector<std::vector<std::complex<double>>> Qt_segy_process::stft(const std::
     // 初始化输出结果数组
     std::vector<std::vector<std::complex<double>>> result(num_frames,
         std::vector<std::complex<double>>(window_size / 2 + 1));
-
     stylesheet_QT style_bar;
     int progressValue;
     progress_bar = new QProgressBar();//设置进度条
@@ -2973,9 +2990,8 @@ void Qt_segy_process::drawcurve()
     axisY->setRange(0, 10);
 
     chartview->setRenderHint(QPainter::Antialiasing);
-    chartview->show();
-
-}
+    chartview->show();}
+///音频输入读取并显示
 void Qt_segy_process::draw_audio_curve2() {
 
     const QAudioDevice inputDevice = QMediaDevices::defaultAudioInput();//检查设备是否可以使用
@@ -4728,6 +4744,8 @@ void Qt_segy_process::show_version_info() {
 void Qt_segy_process::closeVersionInfo() {
     widget_info->close();
 }
+
+#pragma region //可重复利用代码块
 ///完成封装
 //data1d_2chartview 一维数据转图表
 //data2d2image二维数据转图像
@@ -5061,3 +5079,5 @@ void Qt_segy_process::closeVersionInfo() {
 //
 //    return resultData;
 //}
+
+#pragma endregion
