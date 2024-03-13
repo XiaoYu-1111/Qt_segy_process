@@ -308,7 +308,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
     dockWidget1->setMinimumWidth(50);
     dockWidget1->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
     dockWidget1->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    QTextEdit* te1 = new QTextEdit();
+    QTextEdit* te1 = new QTextEdit();//dock中文本
     te1->setText(tr("This area can be used for taking notes."));
     te1->setStyleSheet(style1.dock_textEdit);
     dockWidget1->setWidget(te1);
@@ -1033,8 +1033,6 @@ std::vector<std::vector<float>>  Qt_segy_process::getsegyarray(const std::string
 
     // Create a 2D vector to store the data
     std::vector<std::vector<float>> dataArray(traces, std::vector<float>(trace_length));
-
-
     for (int i = 0; i < traces; i++)
     {
         if (i % 10000 == 0)
@@ -2867,7 +2865,6 @@ void Qt_segy_process::STFT_function() {
 }
 //stft计算主体
 void Qt_segy_process::calculate_stft_main() {
-
 
     textEdit1->append(tr("window_size:%1 ").arg(stft_windows_size->value()));//增加信息
     textEdit1->append(tr("hop_length:%1 ").arg(stft_hop_length->value()));//增加信息
