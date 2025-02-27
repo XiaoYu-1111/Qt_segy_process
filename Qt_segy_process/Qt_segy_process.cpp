@@ -357,7 +357,7 @@ Qt_segy_process::Qt_segy_process(QWidget *parent)
 
     page2_left_layout->addWidget(page2_widget1);//按照加进层的顺序排布
     page2_left_layout->addWidget(page2_widget3);//添加到左边splitter层
-    /*page2_left_layout->addWidget(page2_widget2);*///先取消12.15
+    page2_left_layout->addWidget(page2_widget2);//先取消12.15
     page2_left_layout->addWidget(page2_widget4);
 
     page2_widget1->setStyleSheet(style1.widget_gray1);
@@ -1897,10 +1897,10 @@ std::vector<std::complex<float>> Qt_segy_process::discrete_fourier_transform(con
     int N = x.size();
     std::vector<std::complex<float>> X(N, std::complex<float>(0.0f, 0.0f));//存储计算结果
     
-    for (int k = 0; k < N; ++k) {
+    for (int k = 0; k < N; ++k) {//外层
         float angle_factor = -2.0f * M_PI * k / N; // 频率因子
         std::complex<float> sum(0.0f, 0.0f);
-        for (int n = 0; n < N; ++n) {
+        for (int n = 0; n < N; ++n) {//内层
             float angle = angle_factor * n; // 频率因子 * 时间点
             std::complex<float> exp_term = std::polar<float>(1.0, angle);
             sum += exp_term * x[n];
@@ -3069,6 +3069,8 @@ void Qt_segy_process::draw_audio_curve2() {
     widget->show();
 
 }
+
+
 void Qt_segy_process::draw_dynamic_curve() {
 
     QChartView* chartview = new QChartView();
@@ -4241,36 +4243,36 @@ QColor getColorBasedOnValue(float value) {
     return QColor(r, 0, b);
 }
 void Qt_segy_process::draw3Dsurface() {
-   // // 创建 Q3DSurface
-   //Q3DSurface* surface = new Q3DSurface();
-   // // 创建数据代理
-   // QSurfaceDataProxy* dataProxy = new QSurfaceDataProxy();
-   // // 创建曲面系列
-   // QSurface3DSeries* series = new QSurface3DSeries(dataProxy);
-   // 
+    // 创建 Q3DSurface
+   Q3DSurface* surface = new Q3DSurface();
+    // 创建数据代理
+    QSurfaceDataProxy* dataProxy = new QSurfaceDataProxy();
+    // 创建曲面系列
+    QSurface3DSeries* series = new QSurface3DSeries(dataProxy);
+    
+    surface->setFlags(surface->flags() ^ Qt::FramelessWindowHint);
+    // 创建数据
+    int rows = 100;
+    int columns = 100;
 
-   // // 创建数据
-   // int rows = 100;
-   // int columns = 100;
+    for (int i = 0; i < rows; ++i) {
+        QSurfaceDataRow* dataRow = new QSurfaceDataRow();
+        for (int j = 0; j < columns; ++j) {
+            float x = static_cast<float>(i);
+            float y = static_cast<float>(j);
+            float z = static_cast<float>(qSin(qDegreesToRadians(x)) + qCos(qDegreesToRadians(y))); // 你的高程数据计算方式
+            *dataRow << QVector3D(x, y, z);
+        }
+        dataProxy->addRow(dataRow);
+    }
+    surface->addSeries(series);
+    qDebug() << "OpenGL Version:" << QSurfaceFormat::defaultFormat().version();
 
-   // for (int i = 0; i < rows; ++i) {
-   //     QSurfaceDataRow* dataRow = new QSurfaceDataRow();
-   //     for (int j = 0; j < columns; ++j) {
-   //         float x = static_cast<float>(i);
-   //         float y = static_cast<float>(j);
-   //         float z = static_cast<float>(qSin(qDegreesToRadians(x)) + qCos(qDegreesToRadians(y))); // 你的高程数据计算方式
-   //         *dataRow << QVector3D(x, y, z);
-   //     }
-   //     dataProxy->addRow(dataRow);
-   // }
-   // surface->addSeries(series);
-   // qDebug() << "OpenGL Version:" << QSurfaceFormat::defaultFormat().version();
-
-   // // 设置坐标轴标题
-   // surface->axisX()->setTitle("X Axis");
-   // surface->axisY()->setTitle("Y Axis");
-   // surface->axisZ()->setTitle("Z Axis");
-   // surface->show();
+    // 设置坐标轴标题
+    surface->axisX()->setTitle("X Axis");
+    surface->axisY()->setTitle("Y Axis");
+    surface->axisZ()->setTitle("Z Axis");
+    surface->show();
     QString message = "unopen";
     ui.statusBar->showMessage(message);
     

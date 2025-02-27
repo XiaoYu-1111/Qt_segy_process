@@ -27,12 +27,24 @@
 #include<qcombobox.h>
 #include<qmessagebox.h>
 #include<QTextEdit>
+#include< QSplitter>
+#include<QTableWidget>
 
 #include <QGraphicsWidget>
 
-#include <QtCharts>
-#include <QChartView>
-#include <QLineSeries>
+#include <QtCharts/QChartView>
+#include <QtCharts/QPolarChart>
+#include <QtCharts/QAreaSeries>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QSplineSeries>
+
+#include <QtCharts/QScatterSeries>
+
+#include <QtDataVisualization/Q3DScatter>
+#include <QtDataVisualization/Q3DSurface>
+
+
 #include <QFont>
 
 #include <QGraphicsView>
@@ -42,7 +54,6 @@
 #include <QPainter>
 #include<QProgressBar>
 
-#include <QtDataVisualization>
 #include<cmath>
 #include <vector>
 #include <numeric>
@@ -60,7 +71,6 @@
 
 #include"xyseriesiodevice.h"
 
-class XYSeriesIODevice;
 
 class Qt_segy_process : public QMainWindow
 {

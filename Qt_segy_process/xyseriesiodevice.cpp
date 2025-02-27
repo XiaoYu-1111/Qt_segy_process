@@ -3,14 +3,13 @@
 
 #include "xyseriesiodevice.h"
 
-#include <QXYSeries>
+#include <QtCharts/QXYSeries>
 
 XYSeriesIODevice::XYSeriesIODevice(QXYSeries* series, QObject* parent) :
     QIODevice(parent),
     m_series(series)
 {
 }
-
 qint64 XYSeriesIODevice::readData(char* data, qint64 maxSize)
 {
     Q_UNUSED(data);
