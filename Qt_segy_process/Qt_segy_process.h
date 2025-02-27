@@ -38,12 +38,10 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QSplineSeries>
-
 #include <QtCharts/QScatterSeries>
 
 #include <QtDataVisualization/Q3DScatter>
 #include <QtDataVisualization/Q3DSurface>
-
 
 #include <QFont>
 
